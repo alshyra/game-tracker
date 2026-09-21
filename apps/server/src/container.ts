@@ -7,6 +7,8 @@ export interface Config {
   devNoAuth: boolean;
   steamApiKey: string;
   steamId: string;
+  /** Jeton bearer protégeant `POST /mcp`. Vide ⇒ MCP désactivé. */
+  mcpToken: string;
   gamesPath: string;
   snapshotPath: string;
   webDist: string;
@@ -20,6 +22,7 @@ export function loadConfig(): Config {
     devNoAuth: process.env.DEV_NO_AUTH === "true",
     steamApiKey: (process.env.STEAM_API_KEY ?? "").trim(),
     steamId: (process.env.STEAM_ID ?? "").trim(),
+    mcpToken: (process.env.MCP_TOKEN ?? "").trim(),
     gamesPath: join(root, "games.yaml"),
     snapshotPath: join(root, "data/steam-snapshot.json"),
     webDist: join(root, "apps/web/dist"),

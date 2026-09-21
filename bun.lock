@@ -32,6 +32,8 @@
       "dependencies": {
         "@elysiajs/static": "^1.3.0",
         "@gameshelf/core": "workspace:*",
+        "@gameshelf/mcp": "workspace:*",
+        "@modelcontextprotocol/sdk": "^1.17.0",
         "commander": "^12.1.0",
         "elysia": "^1.3.0",
         "ora": "^8.1.0",

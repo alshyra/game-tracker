@@ -1,6 +1,7 @@
 import { StatusSchema } from "@gameshelf/core";
 import { Elysia, t } from "elysia";
 import type { Container } from "../container";
+import { createMcpHandler } from "./mcp";
 
 const LocalPatchBody = t.Partial(
   t.Object({
@@ -17,6 +18,8 @@ const LocalPatchBody = t.Partial(
  * traduit les requêtes en appels de cas d'usage et mappe les erreurs du domaine.
  */
 export function createApp(container: Container) {
+  const mcpHandler = createMcpHandler(container, container.config.mcpToken);
+
   return new Elysia()
     .onError(({ code, error, set }) => {
       const name = error instanceof Error ? error.name : "";
@@ -40,6 +43,7 @@ export function createApp(container: Container) {
       set.status = 500;
       return { error: message };
     })
+    .all("/mcp", ({ request }) => mcpHandler(request))
     .group("/api", (app) =>
       app
         .onBeforeHandle(({ request, set }) => {

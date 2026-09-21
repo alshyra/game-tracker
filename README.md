@@ -74,21 +74,26 @@ par une valeur venue de l'API.
 
 ## MCP (agent)
 
-`apps/mcp` expose la collection en **serveur MCP stdio**, sans API dédiée : il
-appelle les mêmes cas d'usage que la CLI (`@gameshelf/core`). Outils :
+`apps/mcp` expose la collection en serveur MCP, sans API dédiée : les outils
+appellent les mêmes cas d'usage que la CLI (`@gameshelf/core`). Outils :
 `list_games`, `get_stats`, `set_status`, `set_online`, `sync`, `detect_online`.
 
-```bash
-# Enregistrement dans OpenClaw (le cwd fait charger .env, donc les creds Steam)
-openclaw mcp add gameshelf \
-  --command "$(which bun)" \
-  --arg "$PWD/apps/mcp/src/index.ts" \
-  --cwd "$PWD"
-openclaw mcp probe gameshelf
-```
+Deux transports, un seul jeu d'outils :
 
-Test manuel : `bun apps/mcp/src/index.ts` (parle JSON-RPC sur stdio, logs sur
-stderr). Retrait : `openclaw mcp unset gameshelf`.
+- **stdio** — agent local, même machine :
+  ```bash
+  openclaw mcp add gameshelf --command "$(which bun)" \
+    --arg "$PWD/apps/mcp/src/index.ts" --cwd "$PWD"
+  ```
+- **Streamable HTTP** — agent distant (ex. OpenClaw sur le NAS). L'app expose
+  `POST /mcp`, protégé par un jeton bearer (`MCP_TOKEN`). Cet endpoint doit être
+  exempté du forward-auth Authentik côté Traefik.
+  ```bash
+  openclaw mcp add gameshelf --url https://gameshelf.alshyra.fr/mcp \
+    --transport streamable-http --header "Authorization=Bearer $MCP_TOKEN"
+  ```
+
+Retrait : `openclaw mcp unset gameshelf`.
 
 ## Qualité
 
