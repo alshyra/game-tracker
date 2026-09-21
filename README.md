@@ -72,6 +72,24 @@ par une valeur venue de l'API.
 - `data/steam-snapshot.json` — cache jetable de la bibliothèque Steam,
   gitignoré.
 
+## MCP (agent)
+
+`apps/mcp` expose la collection en **serveur MCP stdio**, sans API dédiée : il
+appelle les mêmes cas d'usage que la CLI (`@gameshelf/core`). Outils :
+`list_games`, `get_stats`, `set_status`, `set_online`, `sync`, `detect_online`.
+
+```bash
+# Enregistrement dans OpenClaw (le cwd fait charger .env, donc les creds Steam)
+openclaw mcp add gameshelf \
+  --command "$(which bun)" \
+  --arg "$PWD/apps/mcp/src/index.ts" \
+  --cwd "$PWD"
+openclaw mcp probe gameshelf
+```
+
+Test manuel : `bun apps/mcp/src/index.ts` (parle JSON-RPC sur stdio, logs sur
+stderr). Retrait : `openclaw mcp unset gameshelf`.
+
 ## Qualité
 
 ```bash

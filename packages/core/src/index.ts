@@ -5,6 +5,7 @@ export * from "./applications/detectOnline";
 export * from "./applications/listGames";
 export * from "./applications/setGameLocal";
 export * from "./applications/syncLibrary";
+export * from "./container";
 export * from "./domain/game";
 export * from "./domain/merge";
 export * from "./domain/online";

@@ -1,19 +1,5 @@
 import { join, resolve } from "node:path";
-import {
-  type DetectOnlineOptions,
-  type DetectOnlineResult,
-  type Game,
-  type LocalPatch,
-  SteamHttpClient,
-  SteamStoreClient,
-  type SyncOptions,
-  type SyncResult,
-  YamlStore,
-  detectOnline as detectOnlineUseCase,
-  listGames as listGamesUseCase,
-  setGameLocal as setGameLocalUseCase,
-  syncLibrary as syncLibraryUseCase,
-} from "@gameshelf/core";
+import { type CoreServices, createCoreServices } from "@gameshelf/core";
 
 export interface Config {
   root: string;
@@ -40,25 +26,16 @@ export function loadConfig(): Config {
   };
 }
 
-export interface Container {
-  config: Config;
-  listGames(): Promise<Game[]>;
-  setGameLocal(key: string, patch: LocalPatch): Promise<void>;
-  sync(options?: SyncOptions): Promise<SyncResult>;
-  detectOnline(options?: DetectOnlineOptions): Promise<DetectOnlineResult>;
-}
+export type Container = CoreServices & { config: Config };
 
-/** Composition root : le seul endroit qui branche les adapters au domaine. */
+/** Composition root de l'interface HTTP/CLI : config + services du domaine. */
 export function buildContainer(config: Config = loadConfig()): Container {
-  const steam = new SteamHttpClient({ key: config.steamApiKey, steamId: config.steamId });
-  const steamStore = new SteamStoreClient();
-  const store = new YamlStore(config.gamesPath, config.snapshotPath);
-
   return {
     config,
-    listGames: () => listGamesUseCase(store),
-    setGameLocal: (key, patch) => setGameLocalUseCase(store, key, patch),
-    sync: (options) => syncLibraryUseCase({ steam, store }, options),
-    detectOnline: (options) => detectOnlineUseCase({ store, steamStore }, options),
+    ...createCoreServices({
+      root: config.root,
+      steamApiKey: config.steamApiKey,
+      steamId: config.steamId,
+    }),
   };
 }

@@ -12,7 +12,7 @@
     "cli": "bun apps/server/src/cli/index.ts",
     "check": "biome check .",
     "format": "biome format --write .",
-    "typecheck": "tsc --noEmit -p packages/core && tsc --noEmit -p apps/server && bun run --cwd apps/web typecheck",
+    "typecheck": "tsc --noEmit -p packages/core && tsc --noEmit -p apps/server && tsc --noEmit -p apps/mcp && bun run --cwd apps/web typecheck",
     "test": "bun test"
   },
   "devDependencies": {
