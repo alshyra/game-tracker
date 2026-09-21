@@ -1,0 +1,19 @@
+# Source de vérité locale de Gameshelf.
+#
+# Ce fichier est rejouable : il ne contient QUE des données locales (statut,
+# note, notes, overrides de titre ou de jaquette). L'API Steam n'écrit jamais
+# ici ; temps de jeu et jaquettes viennent de data/steam-snapshot.json.
+#
+# Format :
+#   version: 1
+#   games:
+#     "72850":            # clé = steam_appid pour un jeu Steam
+#       status: en_cours  # backlog | en_cours | en_pause | termine | abandonne | wishlist
+#       rating: 9
+#       notes: "à finir avant l'hiver"
+#     "manual:un-jeu":    # clé libre pour un jeu manuel ou en wishlist
+#       title: "Un jeu indé"
+#       status: wishlist
+
+version: 1
+games: {}

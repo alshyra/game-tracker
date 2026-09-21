@@ -1,0 +1,24 @@
+{
+  "name": "gameshelf",
+  "private": true,
+  "type": "module",
+  "workspaces": ["packages/*", "apps/*"],
+  "scripts": {
+    "dev": "concurrently -n api,web -c cyan,magenta \"bun run dev:server\" \"bun run dev:web\"",
+    "dev:server": "bun --watch apps/server/src/index.ts",
+    "dev:web": "bun run --cwd apps/web dev",
+    "build:web": "bun run --cwd apps/web build",
+    "start": "bun apps/server/src/index.ts",
+    "cli": "bun apps/server/src/cli/index.ts",
+    "check": "biome check .",
+    "format": "biome format --write .",
+    "typecheck": "tsc --noEmit -p packages/core && tsc --noEmit -p apps/server && bun run --cwd apps/web typecheck",
+    "test": "bun test"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.4",
+    "@types/bun": "^1.2.0",
+    "concurrently": "^9.1.0",
+    "typescript": "^5.7.0"
+  }
+}

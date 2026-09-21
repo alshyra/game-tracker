@@ -54,10 +54,7 @@ if (!key) {
   process.exit(2);
 }
 
-async function getJson(
-  base: string,
-  params: Record<string, string | number>,
-): Promise<Response> {
+async function getJson(base: string, params: Record<string, string | number>): Promise<Response> {
   const url = new URL(base);
   for (const [k, v] of Object.entries(params)) {
     url.searchParams.set(k, String(v));
@@ -118,7 +115,9 @@ async function main(): Promise<number> {
   const inner = payload.response ?? {};
   const eresult = inner.eresult ?? 1;
   if (eresult === 25 || eresult === 84) {
-    console.error(`[ERREUR] x-eresult=${eresult} : rate limit / accès refusé. Ralentis et réessaie.`);
+    console.error(
+      `[ERREUR] x-eresult=${eresult} : rate limit / accès refusé. Ralentis et réessaie.`,
+    );
     return 1;
   }
 
@@ -137,7 +136,9 @@ async function main(): Promise<number> {
 
   const count = inner.game_count ?? games.length;
   const totalMin = games.reduce((sum, g) => sum + (g.playtime_forever ?? 0), 0);
-  console.log(`[OK] ${count} jeux retournés, ${totalMin} min cumulées (${(totalMin / 60).toFixed(1)} h)`);
+  console.log(
+    `[OK] ${count} jeux retournés, ${totalMin} min cumulées (${(totalMin / 60).toFixed(1)} h)`,
+  );
 
   const top = [...games].sort((a, b) => (b.playtime_forever ?? 0) - (a.playtime_forever ?? 0));
   console.log(`\n== 2. Enrichissement appdetails des ${LIMIT} jeux les plus joués ==`);
@@ -174,7 +175,9 @@ async function main(): Promise<number> {
     const recent = (JSON.parse(await res3.text()) as RecentGamesResponse).response ?? {};
     console.log(`[OK] ${recent.total_count ?? 0} jeux joués ces 2 dernières semaines`);
     for (const g of recent.games ?? []) {
-      console.log(`  ${(g.name ?? "?").padEnd(40)} 2w=${((g.playtime_2weeks ?? 0) / 60).toFixed(1)} h`);
+      console.log(
+        `  ${(g.name ?? "?").padEnd(40)} 2w=${((g.playtime_2weeks ?? 0) / 60).toFixed(1)} h`,
+      );
     }
   } else {
     console.log(`[WARN] GetRecentlyPlayedGames indisponible (HTTP ${res3.status})`);
