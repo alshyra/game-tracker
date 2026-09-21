@@ -16,6 +16,9 @@ export interface Config {
 
 export function loadConfig(): Config {
   const root = process.env.GAMESHELF_ROOT ?? resolve(import.meta.dir, "../../..");
+  // Le front est buildée à côté du serveur dans l'image (/app/apps/web/dist),
+  // indépendamment du répertoire de données (GAMESHELF_ROOT).
+  const webDist = resolve(import.meta.dir, "../../web/dist");
   return {
     root,
     port: Number(process.env.PORT ?? 3000),
@@ -25,7 +28,7 @@ export function loadConfig(): Config {
     mcpToken: (process.env.MCP_TOKEN ?? "").trim(),
     gamesPath: join(root, "games.yaml"),
     snapshotPath: join(root, "data/steam-snapshot.json"),
-    webDist: join(root, "apps/web/dist"),
+    webDist,
   };
 }
 

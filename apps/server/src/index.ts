@@ -15,8 +15,8 @@ if (await Bun.file(indexHtml).exists()) {
   console.warn("Lance `bun run build:web` (ou `bun run dev:web` pour le HMR).");
 }
 
-app.listen(config.port);
-console.log(`[gameshelf] en écoute sur http://localhost:${config.port}`);
+app.listen({ port: config.port, hostname: "0.0.0.0" });
+console.log(`[gameshelf] en écoute sur http://0.0.0.0:${config.port}`);
 if (!config.devNoAuth) {
   console.log("[gameshelf] auth : forward-auth Authentik (en-tête X-authentik-username)");
 }

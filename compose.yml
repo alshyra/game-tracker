@@ -1,0 +1,42 @@
+services:
+  gameshelf:
+    build:
+      context: .
+      dockerfile: deploy/Dockerfile
+    image: gameshelf:0.1.0
+    container_name: gameshelf
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      # La prod passe par Authentik : pas d'utilisateur fictif.
+      DEV_NO_AUTH: "false"
+      PORT: "3000"
+      GAMESHELF_ROOT: /data
+    volumes:
+      - gameshelf-data:/data
+    networks:
+      - traefik
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik
+      - traefik.http.services.gameshelf.loadbalancer.server.port=3000
+      # UI — protégée par Authentik (forward-auth)
+      - "traefik.http.routers.gameshelf.rule=Host(`gameshelf.alshyra.fr`)"
+      - traefik.http.routers.gameshelf.entrypoints=websecure
+      - traefik.http.routers.gameshelf.tls.certresolver=ovh
+      - traefik.http.routers.gameshelf.middlewares=auth@file
+      - traefik.http.routers.gameshelf.priority=10
+      # MCP — jeton bearer, exempté du forward-auth Authentik
+      - "traefik.http.routers.gameshelf-mcp.rule=Host(`gameshelf.alshyra.fr`) && PathPrefix(`/mcp`)"
+      - traefik.http.routers.gameshelf-mcp.entrypoints=websecure
+      - traefik.http.routers.gameshelf-mcp.tls.certresolver=ovh
+      - traefik.http.routers.gameshelf-mcp.service=gameshelf
+      - traefik.http.routers.gameshelf-mcp.priority=100
+
+volumes:
+  gameshelf-data:
+
+networks:
+  traefik:
+    external: true
