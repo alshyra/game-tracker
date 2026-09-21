@@ -1,5 +1,11 @@
 #!/usr/bin/env bun
-import { type Game, STATUSES, type Status, SteamPrivacyError } from "@gameshelf/core";
+import {
+  type Game,
+  type OnlineCandidate,
+  STATUSES,
+  type Status,
+  SteamPrivacyError,
+} from "@gameshelf/core";
 import { Command } from "commander";
 import pc from "picocolors";
 import { buildContainer } from "../container";
@@ -92,6 +98,53 @@ program
       return;
     }
     printGames(games);
+  });
+
+program
+  .command("online")
+  .description("Détecte les jeux en ligne (hors kanban) via les métadonnées du magasin Steam")
+  .option("--apply", "marque réellement les jeux en ligne détectés", false)
+  .option("--include-mixed", "inclut aussi les jeux solo+multi (à confirmer)", false)
+  .action(async (options: { apply: boolean; includeMixed: boolean }) => {
+    const container = buildContainer();
+    console.log(pc.bold(options.apply ? "Détection + application" : "Détection (simulation)"));
+    console.log(pc.dim("  appdetails Steam, ~1 s par jeu…\n"));
+
+    const result = await container.detectOnline({
+      apply: options.apply,
+      includeMixed: options.includeMixed,
+    });
+
+    const groups: { label: string; tier: OnlineCandidate["tier"] }[] = [
+      { label: "MMO", tier: "mmo" },
+      { label: "Multijoueur seul", tier: "multiplayer_only" },
+      { label: "Solo + multi (à confirmer)", tier: "mixed" },
+    ];
+
+    for (const { label, tier } of groups) {
+      const list = result.candidates.filter((candidate) => candidate.tier === tier);
+      if (list.length === 0) continue;
+      console.log(pc.bold(`${label} (${list.length})`));
+      for (const candidate of list) {
+        const flag = candidate.alreadyOnline ? pc.green("déjà ") : "     ";
+        console.log(
+          `  ${flag}${candidate.title.slice(0, 44).padEnd(44)} ${pc.dim(candidate.reasons.join(", "))}`,
+        );
+      }
+      console.log("");
+    }
+
+    console.log(`  scannés : ${result.scanned}   échecs : ${result.failed}`);
+    if (options.apply) {
+      console.log(pc.green(`  ${result.marked} jeu(x) marqué(s) en ligne.`));
+    } else {
+      console.log(
+        pc.dim(
+          "  Simulation : rien écrit. Relance avec --apply " +
+            "(ajoute --include-mixed pour le 3e groupe).",
+        ),
+      );
+    }
   });
 
 await program.parseAsync(process.argv);

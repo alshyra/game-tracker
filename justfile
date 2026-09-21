@@ -28,6 +28,14 @@ sync-apply:
 status:
     bun run cli status
 
+# Détecte les jeux en ligne (simulation)
+online:
+    bun run cli online
+
+# Marque les jeux en ligne détectés (MMO + multijoueur seul)
+online-apply:
+    bun run cli online --apply
+
 # Lint + format (Biome)
 check:
     bunx biome check .

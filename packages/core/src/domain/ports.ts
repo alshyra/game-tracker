@@ -68,6 +68,17 @@ export interface SteamPort {
   fetchLibrary(): Promise<LibraryEntry[]>;
 }
 
+/** Métadonnées publiques du magasin (aucune clé requise). */
+export interface AppDetails {
+  genres: string[];
+  categories: string[];
+  release_date: string | null;
+}
+
+export interface SteamStorePort {
+  fetchAppDetails(appid: number): Promise<AppDetails>;
+}
+
 export interface StorePort {
   readLocal(): Promise<Map<string, LocalRecord>>;
   writeLocalFields(key: string, patch: LocalPatch): Promise<void>;

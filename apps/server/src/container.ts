@@ -1,11 +1,15 @@
 import { join, resolve } from "node:path";
 import {
+  type DetectOnlineOptions,
+  type DetectOnlineResult,
   type Game,
   type LocalPatch,
   SteamHttpClient,
+  SteamStoreClient,
   type SyncOptions,
   type SyncResult,
   YamlStore,
+  detectOnline as detectOnlineUseCase,
   listGames as listGamesUseCase,
   setGameLocal as setGameLocalUseCase,
   syncLibrary as syncLibraryUseCase,
@@ -41,11 +45,13 @@ export interface Container {
   listGames(): Promise<Game[]>;
   setGameLocal(key: string, patch: LocalPatch): Promise<void>;
   sync(options?: SyncOptions): Promise<SyncResult>;
+  detectOnline(options?: DetectOnlineOptions): Promise<DetectOnlineResult>;
 }
 
 /** Composition root : le seul endroit qui branche les adapters au domaine. */
 export function buildContainer(config: Config = loadConfig()): Container {
   const steam = new SteamHttpClient({ key: config.steamApiKey, steamId: config.steamId });
+  const steamStore = new SteamStoreClient();
   const store = new YamlStore(config.gamesPath, config.snapshotPath);
 
   return {
@@ -53,5 +59,6 @@ export function buildContainer(config: Config = loadConfig()): Container {
     listGames: () => listGamesUseCase(store),
     setGameLocal: (key, patch) => setGameLocalUseCase(store, key, patch),
     sync: (options) => syncLibraryUseCase({ steam, store }, options),
+    detectOnline: (options) => detectOnlineUseCase({ store, steamStore }, options),
   };
 }

@@ -36,7 +36,22 @@ bun run build:web && bun run start   # http://localhost:3000
 ```
 
 Un `justfile` expose les mêmes commandes : `just dev`, `just sync-apply`,
-`just check`, `just typecheck`, `just test`.
+`just online`, `just check`, `just typecheck`, `just test`.
+
+## Jeux en ligne
+
+Les jeux en ligne / sans fin sont exclus du kanban (réservé aux jeux solo qui se
+finissent) et visibles dans la grille avec un badge. On les marque
+automatiquement depuis les métadonnées Steam :
+
+```bash
+bun run cli online           # simulation : liste les candidats
+bun run cli online --apply   # marque MMO + multijoueur seul
+```
+
+Le classifieur est conservateur (`Co-op` local n'est pas considéré comme en
+ligne) et `--include-mixed` ajoute les jeux solo+multi, à confirmer au cas par
+cas.
 
 ## Architecture
 
