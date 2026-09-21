@@ -1,6 +1,6 @@
 import type { Game } from "./game";
 import type { LibraryEntry, LocalRecord } from "./ports";
-import { DEFAULT_STATUS } from "./status";
+import { defaultStatusFor } from "./status";
 
 /**
  * Fusion API + local. Règle cardinale : un champ local n'est jamais écrasé par
@@ -46,7 +46,7 @@ function mergeOne(
     playtime_forever_min: entry.playtime_forever_min,
     playtime_2weeks_min: entry.playtime_2weeks_min,
     last_played_at: entry.last_played_at,
-    status: rec?.status ?? DEFAULT_STATUS,
+    status: rec?.status ?? defaultStatusFor(entry.playtime_forever_min),
     rating: rec?.rating ?? null,
     notes: rec?.notes ?? null,
     source: "steam",

@@ -14,7 +14,8 @@
     "@gameshelf/core": "workspace:*",
     "@gameshelf/server": "workspace:*",
     "@tanstack/vue-query": "^5.62.0",
-    "vue": "^3.5.0"
+    "vue": "^3.5.0",
+    "vue-draggable-plus": "^0.6.0"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.0.0",

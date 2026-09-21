@@ -11,6 +11,8 @@ Ce document remplace le brief v1 (Python/FastAPI). La stack est désormais
 1. Importer automatiquement la bibliothèque Steam (jeux possédés, temps de jeu,
    dernière session).
 2. Afficher une grille de cartes avec jaquettes, filtrable par statut.
+   Vue principale : **kanban drag & drop** (une colonne par statut) ; la grille
+   reste disponible en bascule.
 3. Laisser définir un statut par jeu : `backlog`, `en cours`, `en pause`,
    `terminé`, `abandonné`, `wishlist`.
 4. Se déployer en Docker derrière Traefik avec Authentik (forward-auth).
@@ -93,6 +95,10 @@ Game
 soit `local`. Un champ local n'est **jamais** réécrit par une valeur venue de
 l'API. Steam ne connaît pas « en pause » et `playtime_forever` est cumulatif :
 le statut, la note et les notes sont des données locales.
+
+**Statut par défaut.** Un jeu Steam sans statut local et déjà joué **plus d'une
+heure** est au moins « en cours », jamais « backlog ». Le statut local reste
+prioritaire dans tous les cas.
 
 ## Sources de données et pièges vérifiés
 

@@ -52,6 +52,29 @@ describe("buildGames", () => {
     expect(game?.cover_url).toBe("cover-2");
   });
 
+  test("plus d'une heure jouée => au moins en cours, pas backlog", () => {
+    const games = buildGames(
+      [
+        entry({ appid: 3, playtime_forever_min: 61 }),
+        entry({ appid: 4, playtime_forever_min: 60 }),
+      ],
+      new Map(),
+      null,
+    );
+    const byKey = new Map(games.map((game) => [game.key, game.status]));
+    expect(byKey.get("3")).toBe("en_cours");
+    expect(byKey.get("4")).toBe("backlog");
+  });
+
+  test("le statut local reste prioritaire même avec du temps de jeu", () => {
+    const [game] = buildGames(
+      [entry({ appid: 5, playtime_forever_min: 600 })],
+      new Map([["5", local({ key: "5", status: "backlog" })]]),
+      null,
+    );
+    expect(game?.status).toBe("backlog");
+  });
+
   test("inclut les jeux manuels et wishlist absents de Steam", () => {
     const store = new Map([
       [

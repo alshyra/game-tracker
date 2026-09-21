@@ -5,7 +5,10 @@ import { computed, ref } from "vue";
 import { api } from "./api";
 import FilterBar from "./components/FilterBar.vue";
 import GameCard from "./components/GameCard.vue";
+import KanbanBoard from "./components/KanbanBoard.vue";
 import { STATUS_ORDER, formatHours } from "./status";
+
+type View = "kanban" | "grid";
 
 function extractError(error: unknown, fallback: string): string {
   if (error && typeof error === "object") {
@@ -21,6 +24,7 @@ function extractError(error: unknown, fallback: string): string {
 }
 
 const queryClient = useQueryClient();
+const view = ref<View>("kanban");
 const filter = ref<Status | "all">("all");
 const search = ref("");
 
@@ -62,10 +66,27 @@ const {
     const { error } = await api.api.games({ key }).patch({ status });
     if (error) throw new Error(extractError(error, "Mise à jour impossible."));
   },
-  onSuccess: () => queryClient.invalidateQueries({ queryKey: ["games"] }),
+  onMutate: async ({ key, status }) => {
+    await queryClient.cancelQueries({ queryKey: ["games"] });
+    const previous = queryClient.getQueryData<Game[]>(["games"]);
+    queryClient.setQueryData<Game[]>(["games"], (old) =>
+      old?.map((game) => (game.key === key ? { ...game, status } : game)),
+    );
+    return { previous };
+  },
+  onError: (_error, _variables, context) => {
+    if (context?.previous) queryClient.setQueryData(["games"], context.previous);
+  },
+  onSettled: () => queryClient.invalidateQueries({ queryKey: ["games"] }),
 });
 
 const games = computed<Game[]>(() => gamesData.value ?? []);
+
+const searched = computed(() => {
+  const query = search.value.trim().toLowerCase();
+  if (query === "") return games.value;
+  return games.value.filter((game) => game.title.toLowerCase().includes(query));
+});
 
 const counts = computed(() => {
   const base = Object.fromEntries(STATUS_ORDER.map((status) => [status, 0])) as Record<
@@ -76,17 +97,27 @@ const counts = computed(() => {
   return base;
 });
 
-const visible = computed(() => {
-  const query = search.value.trim().toLowerCase();
-  return games.value.filter(
-    (game) =>
-      (filter.value === "all" || game.status === filter.value) &&
-      (query === "" || game.title.toLowerCase().includes(query)),
-  );
-});
+const visible = computed(() =>
+  filter.value === "all"
+    ? searched.value
+    : searched.value.filter((game) => game.status === filter.value),
+);
 
 const totalPlaytime = computed(() =>
   games.value.reduce((sum, game) => sum + game.playtime_forever_min, 0),
+);
+
+const updatingKey = computed(() =>
+  statusPending.value ? (statusVariables.value?.key ?? null) : null,
+);
+
+/**
+ * Key du board : force un remontage propre après chaque changement de données.
+ * SortableJS déplace des nœuds DOM ; cette clé évite que Vue patche son virtual
+ * DOM par-dessus un DOM déjà réorganisé (cartes dupliquées entre colonnes).
+ */
+const boardKey = computed(() =>
+  searched.value.map((game) => `${game.key}:${game.status}`).join("|"),
 );
 
 const syncSummary = computed(() => {
@@ -108,14 +139,10 @@ function onFilter(value: Status | "all"): void {
 function onStatusChange(key: string, status: Status): void {
   setStatus({ key, status });
 }
-
-function isUpdating(key: string): boolean {
-  return statusPending.value && statusVariables.value?.key === key;
-}
 </script>
 
 <template>
-  <div class="mx-auto max-w-[1600px] px-6 py-10">
+  <div class="mx-auto max-w-[1800px] px-6 py-10">
     <header class="mb-8 flex flex-wrap items-end justify-between gap-4">
       <div>
         <h1 class="text-3xl font-semibold tracking-tight text-zinc-50">Gameshelf</h1>
@@ -148,13 +175,43 @@ function isUpdating(key: string): boolean {
     </div>
 
     <div class="mb-6 flex flex-wrap items-center justify-between gap-4">
-      <FilterBar :active="filter" :counts="counts" :total="games.length" @change="onFilter" />
-      <input
-        v-model="search"
-        type="search"
-        placeholder="Rechercher…"
-        class="w-56 rounded-full border border-white/10 bg-zinc-900/60 px-4 py-1.5 text-sm text-zinc-200 outline-none transition placeholder:text-zinc-600 hover:border-white/20 focus:border-emerald-400/50"
+      <FilterBar
+        v-if="view === 'grid'"
+        :active="filter"
+        :counts="counts"
+        :total="games.length"
+        @change="onFilter"
       />
+      <p v-else class="text-sm text-zinc-400">
+        Glisse une carte vers une colonne pour changer son statut.
+      </p>
+
+      <div class="flex items-center gap-3">
+        <div class="flex rounded-full border border-white/10 p-0.5">
+          <button
+            type="button"
+            class="rounded-full px-3 py-1 text-xs font-medium transition"
+            :class="view === 'kanban' ? 'bg-white/10 text-zinc-100' : 'text-zinc-400 hover:text-zinc-200'"
+            @click="view = 'kanban'"
+          >
+            Kanban
+          </button>
+          <button
+            type="button"
+            class="rounded-full px-3 py-1 text-xs font-medium transition"
+            :class="view === 'grid' ? 'bg-white/10 text-zinc-100' : 'text-zinc-400 hover:text-zinc-200'"
+            @click="view = 'grid'"
+          >
+            Grille
+          </button>
+        </div>
+        <input
+          v-model="search"
+          type="search"
+          placeholder="Rechercher…"
+          class="w-56 rounded-full border border-white/10 bg-zinc-900/60 px-4 py-1.5 text-sm text-zinc-200 outline-none transition placeholder:text-zinc-600 hover:border-white/20 focus:border-emerald-400/50"
+        />
+      </div>
     </div>
 
     <p v-if="isLoading" class="py-20 text-center text-sm text-zinc-500">Chargement…</p>
@@ -167,15 +224,28 @@ function isUpdating(key: string): boolean {
     </div>
 
     <div
+      v-else-if="games.length === 0"
+      class="rounded-2xl border border-dashed border-white/10 py-24 text-center"
+    >
+      <p class="text-sm text-zinc-400">Aucun jeu pour l'instant.</p>
+      <p class="mt-2 text-xs text-zinc-600">
+        Lance une synchronisation Steam pour importer ta bibliothèque.
+      </p>
+    </div>
+
+    <KanbanBoard
+      v-else-if="view === 'kanban'"
+      :key="boardKey"
+      :games="searched"
+      :updating-key="updatingKey"
+      @status-change="onStatusChange"
+    />
+
+    <div
       v-else-if="visible.length === 0"
       class="rounded-2xl border border-dashed border-white/10 py-24 text-center"
     >
-      <p class="text-sm text-zinc-400">
-        {{ games.length === 0 ? "Aucun jeu pour l'instant." : "Aucun jeu ne correspond à ce filtre." }}
-      </p>
-      <p v-if="games.length === 0" class="mt-2 text-xs text-zinc-600">
-        Lance une synchronisation Steam pour importer ta bibliothèque.
-      </p>
+      <p class="text-sm text-zinc-400">Aucun jeu ne correspond à ce filtre.</p>
     </div>
 
     <div
@@ -186,7 +256,7 @@ function isUpdating(key: string): boolean {
         v-for="game in visible"
         :key="game.key"
         :game="game"
-        :updating="isUpdating(game.key)"
+        :updating="updatingKey === game.key"
         @status-change="onStatusChange"
       />
     </div>
