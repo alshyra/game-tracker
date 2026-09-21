@@ -22,8 +22,14 @@ describe("YamlStore", () => {
 
     expect(record?.status).toBe("en_cours");
     expect(record?.rating).toBe(9);
+    expect(record?.online).toBe(false);
     expect(record?.steam_appid).toBe(72850);
     expect(record?.source).toBe("steam");
+  });
+
+  test("persiste le marqueur online", async () => {
+    await store.writeLocalFields("218230", { online: true });
+    expect((await store.readLocal()).get("218230")?.online).toBe(true);
   });
 
   test("préserve les commentaires du fichier", async () => {

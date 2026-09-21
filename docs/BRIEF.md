@@ -12,7 +12,8 @@ Ce document remplace le brief v1 (Python/FastAPI). La stack est désormais
    dernière session).
 2. Afficher une grille de cartes avec jaquettes, filtrable par statut.
    Vue principale : **kanban drag & drop** (une colonne par statut) ; la grille
-   reste disponible en bascule.
+   reste disponible en bascule. Les **jeux en ligne / sans fin** (champ local
+   `online`) sont exclus du kanban, qui ne sert qu'aux jeux solo qui se finissent.
 3. Laisser définir un statut par jeu : `backlog`, `en cours`, `en pause`,
    `terminé`, `abandonné`, `wishlist`.
 4. Se déployer en Docker derrière Traefik avec Authentik (forward-auth).
@@ -85,6 +86,7 @@ Game
   status               Status          # LOCAL
   rating               number | null   # LOCAL
   notes                string | null   # LOCAL
+  online               boolean         # LOCAL — jeu en ligne, exclu du kanban
   source               "steam" | "manual"
   created_at, updated_at
 ```

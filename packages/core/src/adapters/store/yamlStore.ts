@@ -22,6 +22,7 @@ type RawLocal = {
   rating?: unknown;
   notes?: unknown;
   source?: unknown;
+  online?: unknown;
   created_at?: unknown;
   updated_at?: unknown;
 };
@@ -97,6 +98,7 @@ export class YamlStore implements StorePort {
         rating: asNumber(raw.rating),
         notes: asString(raw.notes),
         source,
+        online: raw.online === true,
         created_at: asString(raw.created_at),
         updated_at: asString(raw.updated_at),
       });

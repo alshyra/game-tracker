@@ -50,6 +50,7 @@ function mergeOne(
     rating: rec?.rating ?? null,
     notes: rec?.notes ?? null,
     source: "steam",
+    online: rec?.online ?? false,
     created_at: rec?.created_at ?? snapshotAt,
     updated_at: rec?.updated_at ?? snapshotAt,
   };
@@ -71,6 +72,7 @@ function manualGame(rec: LocalRecord, snapshotAt: string | null): Game {
     rating: rec.rating,
     notes: rec.notes,
     source: rec.source,
+    online: rec.online,
     created_at: rec.created_at ?? snapshotAt,
     updated_at: rec.updated_at ?? snapshotAt,
   };

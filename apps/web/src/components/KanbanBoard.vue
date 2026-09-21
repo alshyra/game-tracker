@@ -10,7 +10,10 @@ const props = defineProps<{
   updatingKey: string | null;
 }>();
 
-const emit = defineEmits<(event: "status-change", key: string, status: Status) => void>();
+const emit = defineEmits<{
+  (event: "status-change", key: string, status: Status): void;
+  (event: "toggle-online", key: string, online: boolean): void;
+}>();
 
 const columns = ref(STATUS_ORDER.map((status) => ({ status, games: [] as Game[] })));
 
@@ -53,6 +56,7 @@ function onAdd(event: DraggableEvent<Game>, status: Status): void {
         group="games"
         :sort="false"
         :animation="150"
+        filter=".no-drag"
         ghost-class="opacity-40"
         drag-class="rotate-1"
         class="flex min-h-32 flex-1 flex-col gap-2 overflow-y-auto p-2 pt-0"
@@ -64,6 +68,7 @@ function onAdd(event: DraggableEvent<Game>, status: Status): void {
           :key="game.key"
           :game="game"
           :updating="updatingKey === game.key"
+          @toggle-online="(key, online) => emit('toggle-online', key, online)"
         />
       </VueDraggable>
     </section>

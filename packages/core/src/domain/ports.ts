@@ -55,12 +55,13 @@ export interface LocalRecord {
   rating: number | null;
   notes: string | null;
   source: Source;
+  online: boolean;
   created_at: string | null;
   updated_at: string | null;
 }
 
 export type LocalPatch = Partial<
-  Pick<LocalRecord, "title" | "cover_url" | "header_url" | "status" | "rating" | "notes">
+  Pick<LocalRecord, "title" | "cover_url" | "header_url" | "status" | "rating" | "notes" | "online">
 >;
 
 export interface SteamPort {

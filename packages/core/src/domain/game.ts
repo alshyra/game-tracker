@@ -19,6 +19,8 @@ export const GameSchema = Type.Object({
   rating: Type.Union([Type.Number(), Type.Null()]),
   notes: Type.Union([Type.String(), Type.Null()]),
   source: SourceSchema,
+  /** Jeu en ligne / sans fin : exclu du kanban (réservé aux jeux solo). LOCAL. */
+  online: Type.Boolean(),
   created_at: Type.Union([Type.String(), Type.Null()]),
   updated_at: Type.Union([Type.String(), Type.Null()]),
 });

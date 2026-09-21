@@ -24,6 +24,7 @@ function local(over: Partial<LocalRecord> & { key: string }): LocalRecord {
     rating: null,
     notes: null,
     source: "steam",
+    online: false,
     created_at: null,
     updated_at: null,
     ...over,
@@ -73,6 +74,17 @@ describe("buildGames", () => {
       null,
     );
     expect(game?.status).toBe("backlog");
+  });
+
+  test("le marqueur online vient du local et vaut false par défaut", () => {
+    const games = buildGames(
+      [entry({ appid: 6 }), entry({ appid: 7 })],
+      new Map([["7", local({ key: "7", online: true })]]),
+      null,
+    );
+    const byKey = new Map(games.map((game) => [game.key, game.online]));
+    expect(byKey.get("6")).toBe(false);
+    expect(byKey.get("7")).toBe(true);
   });
 
   test("inclut les jeux manuels et wishlist absents de Steam", () => {

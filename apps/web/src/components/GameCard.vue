@@ -9,7 +9,10 @@ const props = defineProps<{
   updating: boolean;
 }>();
 
-const emit = defineEmits<(event: "status-change", key: string, status: Status) => void>();
+const emit = defineEmits<{
+  (event: "status-change", key: string, status: Status): void;
+  (event: "toggle-online", key: string, online: boolean): void;
+}>();
 
 const cover = computed(() => props.game.cover_url ?? props.game.header_url ?? "");
 const fallback = computed(() => props.game.header_url ?? "");
@@ -51,29 +54,50 @@ function onChange(event: Event): void {
       <div class="absolute left-2 top-2">
         <StatusBadge :status="game.status" />
       </div>
-      <span
-        v-if="game.playtime_2weeks_min"
-        class="absolute right-2 top-2 rounded-full bg-emerald-500/90 px-2 py-1 text-[11px] font-semibold text-emerald-950"
-      >
-        +{{ formatHours(game.playtime_2weeks_min) }}
-      </span>
+      <div class="absolute right-2 top-2 flex flex-col items-end gap-1">
+        <span
+          v-if="game.online"
+          class="rounded-full bg-teal-500/90 px-2 py-0.5 text-[11px] font-semibold text-teal-950"
+        >
+          En ligne
+        </span>
+        <span
+          v-if="game.playtime_2weeks_min"
+          class="rounded-full bg-emerald-500/90 px-2 py-1 text-[11px] font-semibold text-emerald-950"
+        >
+          +{{ formatHours(game.playtime_2weeks_min) }}
+        </span>
+      </div>
     </div>
 
     <div class="flex flex-1 flex-col gap-2 p-3">
-      <h3
-        class="line-clamp-2 text-sm font-medium leading-snug text-zinc-100"
-        :title="game.title"
-      >
+      <h3 class="line-clamp-2 text-sm font-medium leading-snug text-zinc-100" :title="game.title">
         {{ game.title }}
       </h3>
-      <div class="mt-auto flex items-center justify-between text-xs text-zinc-500">
+      <div class="mt-auto flex items-center justify-between gap-2 text-xs text-zinc-500">
         <span>{{ formatHours(game.playtime_forever_min) }}</span>
-        <span v-if="game.source === 'manual'" class="text-zinc-600">manuel</span>
+        <div class="flex items-center gap-1.5">
+          <span v-if="game.source === 'manual'" class="text-zinc-600">manuel</span>
+          <button
+            type="button"
+            class="rounded-md border px-1.5 py-0.5 text-[11px] transition"
+            :class="
+              game.online
+                ? 'border-teal-400/40 text-teal-300 hover:bg-teal-500/10'
+                : 'border-white/10 text-zinc-500 hover:border-white/20 hover:text-zinc-300'
+            "
+            :title="game.online ? 'Retirer du mode en ligne' : 'Marquer comme jeu en ligne (hors kanban)'"
+            @click="emit('toggle-online', game.key, !game.online)"
+          >
+            ∞ En ligne
+          </button>
+        </div>
       </div>
+      <label class="sr-only" :for="`status-${game.key}`">Statut de {{ game.title }}</label>
       <select
+        :id="`status-${game.key}`"
         :value="game.status"
         :disabled="updating"
-        :aria-label="`Statut de ${game.title}`"
         class="w-full cursor-pointer rounded-lg border border-white/10 bg-zinc-800/80 px-2 py-1.5 text-xs text-zinc-200 outline-none transition hover:border-white/20 focus:border-emerald-400/50 disabled:opacity-50"
         @change="onChange"
       >

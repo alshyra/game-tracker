@@ -9,6 +9,7 @@
 #   games:
 #     "72850":            # clé = steam_appid pour un jeu Steam
 #       status: en_cours  # backlog | en_cours | en_pause | termine | abandonne | wishlist
+#       online: true      # jeu en ligne / sans fin => exclu du kanban
 #       rating: 9
 #       notes: "à finir avant l'hiver"
 #     "manual:un-jeu":    # clé libre pour un jeu manuel ou en wishlist
@@ -16,4 +17,29 @@
 #       status: wishlist
 
 version: 1
-games: {}
+games:
+  "1328670":
+    steam_appid: 1328670
+    created_at: 2026-09-21T12:40:45.882Z
+    status: termine
+    updated_at: 2026-09-21T12:40:45.882Z
+  "72850":
+    steam_appid: 72850
+    created_at: 2026-09-21T12:40:55.239Z
+    status: termine
+    updated_at: 2026-09-21T12:40:55.239Z
+  "20900":
+    steam_appid: 20900
+    created_at: 2026-09-21T12:41:00.450Z
+    status: termine
+    updated_at: 2026-09-21T12:41:00.450Z
+  "990080":
+    steam_appid: 990080
+    created_at: 2026-09-21T12:41:02.406Z
+    status: termine
+    updated_at: 2026-09-21T12:41:02.406Z
+  "377160":
+    steam_appid: 377160
+    created_at: 2026-09-21T12:41:03.644Z
+    status: abandonne
+    updated_at: 2026-09-21T12:41:03.644Z

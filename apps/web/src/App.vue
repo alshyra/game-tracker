@@ -9,6 +9,7 @@ import KanbanBoard from "./components/KanbanBoard.vue";
 import { STATUS_ORDER, formatHours } from "./status";
 
 type View = "kanban" | "grid";
+type LocalPatch = { status?: Status; online?: boolean };
 
 function extractError(error: unknown, fallback: string): string {
   if (error && typeof error === "object") {
@@ -58,19 +59,19 @@ const {
 });
 
 const {
-  mutate: setStatus,
+  mutate: patchGame,
   isPending: statusPending,
   variables: statusVariables,
 } = useMutation({
-  mutationFn: async ({ key, status }: { key: string; status: Status }) => {
-    const { error } = await api.api.games({ key }).patch({ status });
+  mutationFn: async ({ key, patch }: { key: string; patch: LocalPatch }) => {
+    const { error } = await api.api.games({ key }).patch(patch);
     if (error) throw new Error(extractError(error, "Mise à jour impossible."));
   },
-  onMutate: async ({ key, status }) => {
+  onMutate: async ({ key, patch }) => {
     await queryClient.cancelQueries({ queryKey: ["games"] });
     const previous = queryClient.getQueryData<Game[]>(["games"]);
     queryClient.setQueryData<Game[]>(["games"], (old) =>
-      old?.map((game) => (game.key === key ? { ...game, status } : game)),
+      old?.map((game) => (game.key === key ? { ...game, ...patch } : game)),
     );
     return { previous };
   },
@@ -116,8 +117,10 @@ const updatingKey = computed(() =>
  * SortableJS déplace des nœuds DOM ; cette clé évite que Vue patche son virtual
  * DOM par-dessus un DOM déjà réorganisé (cartes dupliquées entre colonnes).
  */
+const kanbanGames = computed(() => searched.value.filter((game) => !game.online));
+
 const boardKey = computed(() =>
-  searched.value.map((game) => `${game.key}:${game.status}`).join("|"),
+  kanbanGames.value.map((game) => `${game.key}:${game.status}`).join("|"),
 );
 
 const syncSummary = computed(() => {
@@ -137,7 +140,11 @@ function onFilter(value: Status | "all"): void {
 }
 
 function onStatusChange(key: string, status: Status): void {
-  setStatus({ key, status });
+  patchGame({ key, patch: { status } });
+}
+
+function onToggleOnline(key: string, online: boolean): void {
+  patchGame({ key, patch: { online } });
 }
 </script>
 
@@ -183,7 +190,8 @@ function onStatusChange(key: string, status: Status): void {
         @change="onFilter"
       />
       <p v-else class="text-sm text-zinc-400">
-        Glisse une carte vers une colonne pour changer son statut.
+        Glisse une carte vers une colonne pour changer son statut. Les jeux en ligne (∞) en sont
+        exclus.
       </p>
 
       <div class="flex items-center gap-3">
@@ -236,9 +244,10 @@ function onStatusChange(key: string, status: Status): void {
     <KanbanBoard
       v-else-if="view === 'kanban'"
       :key="boardKey"
-      :games="searched"
+      :games="kanbanGames"
       :updating-key="updatingKey"
       @status-change="onStatusChange"
+      @toggle-online="onToggleOnline"
     />
 
     <div
@@ -258,6 +267,7 @@ function onStatusChange(key: string, status: Status): void {
         :game="game"
         :updating="updatingKey === game.key"
         @status-change="onStatusChange"
+        @toggle-online="onToggleOnline"
       />
     </div>
   </div>

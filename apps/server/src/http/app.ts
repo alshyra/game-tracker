@@ -8,6 +8,7 @@ const LocalPatchBody = t.Partial(
     rating: t.Union([t.Number(), t.Null()]),
     notes: t.Union([t.String(), t.Null()]),
     title: t.Union([t.String(), t.Null()]),
+    online: t.Boolean(),
   }),
 );
 
