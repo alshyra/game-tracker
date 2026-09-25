@@ -26,7 +26,7 @@ function onImageError(event: Event): void {
 <template>
   <article
     :data-key="game.key"
-    class="group flex cursor-grab select-none gap-2.5 rounded-xl bg-zinc-900 p-2 ring-1 ring-white/5 transition hover:ring-white/15 active:cursor-grabbing"
+    class="group flex select-none gap-2.5 rounded-xl bg-zinc-900 p-2 ring-1 ring-white/5 transition hover:ring-white/15"
     :class="updating ? 'opacity-60' : ''"
   >
     <div class="h-14 w-11 shrink-0 overflow-hidden rounded-md bg-zinc-800">
@@ -52,14 +52,24 @@ function onImageError(event: Event): void {
             · +{{ formatHours(game.playtime_2weeks_min) }}
           </span>
         </p>
-        <button
-          type="button"
-          class="no-drag rounded-md px-1.5 py-0.5 text-[11px] text-zinc-500 transition hover:bg-white/5 hover:text-teal-300 sm:opacity-0 sm:group-hover:opacity-100"
-          title="Jeu en ligne — le retirer du kanban"
-          @click="emit('toggle-online', game.key, true)"
-        >
-          ∞
-        </button>
+        <div class="flex items-center">
+          <button
+            type="button"
+            class="no-drag rounded-md px-1.5 py-0.5 text-[11px] text-zinc-500 transition hover:bg-white/5 hover:text-teal-300 sm:opacity-0 sm:group-hover:opacity-100"
+            title="Jeu en ligne — le retirer du kanban"
+            @click="emit('toggle-online', game.key, true)"
+          >
+            ∞
+          </button>
+          <button
+            type="button"
+            class="drag-handle touch-none cursor-grab rounded-md px-1.5 py-0.5 text-sm leading-none text-zinc-500 transition hover:bg-white/5 hover:text-zinc-200 active:cursor-grabbing sm:text-zinc-600 sm:group-hover:text-zinc-300"
+            title="Glisser pour changer de statut"
+            aria-label="Déplacer"
+          >
+            ⠿
+          </button>
+        </div>
       </div>
     </div>
   </article>
