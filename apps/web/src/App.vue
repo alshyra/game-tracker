@@ -149,10 +149,10 @@ function onToggleOnline(key: string, online: boolean): void {
 </script>
 
 <template>
-  <div class="mx-auto max-w-[1800px] px-6 py-10">
+  <div class="mx-auto max-w-[1800px] px-4 py-6 sm:px-6 sm:py-10">
     <header class="mb-8 flex flex-wrap items-end justify-between gap-4">
       <div>
-        <h1 class="text-3xl font-semibold tracking-tight text-zinc-50">Gameshelf</h1>
+        <h1 class="text-2xl font-semibold tracking-tight text-zinc-50 sm:text-3xl">Gameshelf</h1>
         <p class="mt-1 text-sm text-zinc-400">
           {{ games.length }} jeux · {{ formatHours(totalPlaytime) }} cumulées
         </p>
@@ -160,7 +160,7 @@ function onToggleOnline(key: string, online: boolean): void {
       <button
         type="button"
         :disabled="syncPending"
-        class="rounded-xl border border-emerald-400/30 bg-emerald-500/15 px-4 py-2 text-sm font-medium text-emerald-200 transition hover:border-emerald-400/50 hover:bg-emerald-500/25 disabled:opacity-50"
+        class="w-full rounded-xl border border-emerald-400/30 bg-emerald-500/15 px-4 py-2 text-sm font-medium text-emerald-200 transition hover:border-emerald-400/50 hover:bg-emerald-500/25 disabled:opacity-50 sm:w-auto"
         @click="runSync()"
       >
         {{ syncPending ? "Synchronisation…" : "Synchroniser Steam" }}
@@ -194,7 +194,7 @@ function onToggleOnline(key: string, online: boolean): void {
         exclus.
       </p>
 
-      <div class="flex items-center gap-3">
+      <div class="flex w-full items-center gap-3 sm:w-auto">
         <div class="flex rounded-full border border-white/10 p-0.5">
           <button
             type="button"
@@ -217,7 +217,7 @@ function onToggleOnline(key: string, online: boolean): void {
           v-model="search"
           type="search"
           placeholder="Rechercher…"
-          class="w-56 rounded-full border border-white/10 bg-zinc-900/60 px-4 py-1.5 text-sm text-zinc-200 outline-none transition placeholder:text-zinc-600 hover:border-white/20 focus:border-emerald-400/50"
+          class="w-full rounded-full border border-white/10 bg-zinc-900/60 px-4 py-1.5 text-sm text-zinc-200 outline-none transition placeholder:text-zinc-600 hover:border-white/20 focus:border-emerald-400/50 sm:w-56"
         />
       </div>
     </div>
@@ -259,7 +259,7 @@ function onToggleOnline(key: string, online: boolean): void {
 
     <div
       v-else
-      class="grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6"
+      class="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6"
     >
       <GameCard
         v-for="game in visible"

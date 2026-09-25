@@ -54,7 +54,7 @@ function onImageError(event: Event): void {
         </p>
         <button
           type="button"
-          class="no-drag rounded-md px-1.5 py-0.5 text-[11px] text-zinc-500 opacity-0 transition hover:bg-white/5 hover:text-teal-300 group-hover:opacity-100"
+          class="no-drag rounded-md px-1.5 py-0.5 text-[11px] text-zinc-500 transition hover:bg-white/5 hover:text-teal-300 sm:opacity-0 sm:group-hover:opacity-100"
           title="Jeu en ligne — le retirer du kanban"
           @click="emit('toggle-online', game.key, true)"
         >

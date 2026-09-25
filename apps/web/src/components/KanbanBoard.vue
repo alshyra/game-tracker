@@ -38,7 +38,7 @@ function onAdd(event: DraggableEvent<Game>, status: Status): void {
     <section
       v-for="column in columns"
       :key="column.status"
-      class="flex max-h-[72vh] w-72 shrink-0 flex-col rounded-2xl bg-zinc-900/50 ring-1 ring-white/5"
+      class="flex max-h-[68vh] w-64 shrink-0 flex-col rounded-2xl bg-zinc-900/50 ring-1 ring-white/5 sm:max-h-[72vh] sm:w-72"
     >
       <header class="flex items-center justify-between px-3 py-2.5">
         <div class="flex items-center gap-2">
@@ -56,6 +56,9 @@ function onAdd(event: DraggableEvent<Game>, status: Status): void {
         group="games"
         :sort="false"
         :animation="150"
+        :delay="180"
+        :delay-on-touch-only="true"
+        :touch-start-threshold="5"
         filter=".no-drag"
         ghost-class="opacity-40"
         drag-class="rotate-1"
