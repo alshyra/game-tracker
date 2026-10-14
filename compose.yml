@@ -21,11 +21,18 @@ services:
       - traefik.enable=true
       - traefik.docker.network=traefik
       - traefik.http.services.gameshelf.loadbalancer.server.port=3000
-      # UI — publique (lecture seule)
-      - "traefik.http.routers.gameshelf.rule=Host(`gameshelf.alshyra.fr`)"
+      # UI + lectures publiques (GET/HEAD) — lecture seule, sans Authentik
+      - "traefik.http.routers.gameshelf.rule=Host(`gameshelf.alshyra.fr`) && (Method(`GET`) || Method(`HEAD`))"
       - traefik.http.routers.gameshelf.entrypoints=websecure
       - traefik.http.routers.gameshelf.tls.certresolver=ovh
       - traefik.http.routers.gameshelf.priority=10
+      # Écritures (POST/PATCH/DELETE/PUT) — forward-auth Authentik (injecte X-authentik-username)
+      - "traefik.http.routers.gameshelf-write.rule=Host(`gameshelf.alshyra.fr`) && (Method(`POST`) || Method(`PATCH`) || Method(`DELETE`) || Method(`PUT`))"
+      - traefik.http.routers.gameshelf-write.entrypoints=websecure
+      - traefik.http.routers.gameshelf-write.tls.certresolver=ovh
+      - traefik.http.routers.gameshelf-write.middlewares=auth@file
+      - traefik.http.routers.gameshelf-write.service=gameshelf
+      - traefik.http.routers.gameshelf-write.priority=30
       # Auth check — protégé par Authentik (forward-auth)
       - "traefik.http.routers.gameshelf-auth.rule=Host(`gameshelf.alshyra.fr`) && PathPrefix(`/api/auth`)"
       - traefik.http.routers.gameshelf-auth.entrypoints=websecure
