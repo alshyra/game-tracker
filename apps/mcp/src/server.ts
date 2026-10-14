@@ -66,10 +66,7 @@ export function createGameshelfMcpServer(services: CoreServices): McpServer {
   const server = new McpServer(
     { name: "gameshelf", version: "0.1.0" },
     {
-      instructions:
-        "Gameshelf : bibliothèque de jeux Steam + champs locaux (statut, note, en ligne). " +
-        "Utilise list_games/get_stats pour lire, et set_status/set_online pour modifier. " +
-        `Statuts possibles : ${STATUSES.join(", ")}.`,
+      instructions: `Gameshelf : bibliothèque de jeux Steam + champs locaux (statut, note, en ligne). Utilise list_games/get_stats pour lire, et set_status/set_online pour modifier. Statuts possibles : ${STATUSES.join(", ")}.`,
     },
   );
 
@@ -140,9 +137,7 @@ export function createGameshelfMcpServer(services: CoreServices): McpServer {
     "set_status",
     {
       title: "Changer le statut d'un jeu",
-      description:
-        "Définit le statut local d'un jeu (identifié par appid ou titre). " +
-        `Statuts : ${STATUSES.join(", ")}.`,
+      description: `Définit le statut local d'un jeu (identifié par appid ou titre). Statuts : ${STATUSES.join(", ")}.`,
       inputSchema: {
         game: z.string().describe("appid Steam ou titre du jeu"),
         status: StatusEnum,

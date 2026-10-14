@@ -16,6 +16,9 @@ const LocalPatchBody = t.Partial(
 /**
  * Interface HTTP (driving adapter). Ne contient aucune logique métier : elle
  * traduit les requêtes en appels de cas d'usage et mappe les erreurs du domaine.
+ *
+ * Routes publiques (lecture seule) : /api/health, /api/games, /api/me
+ * Routes protégées (écriture) : PATCH /api/games/:key, POST /api/sync
  */
 export function createApp(container: Container) {
   const mcpHandler = createMcpHandler(container, container.config.mcpToken);
@@ -46,26 +49,46 @@ export function createApp(container: Container) {
     .all("/mcp", ({ request }) => mcpHandler(request))
     .group("/api", (app) =>
       app
-        .onBeforeHandle(({ request, set }) => {
-          if (container.config.devNoAuth) return;
-          const user = request.headers.get("x-authentik-username");
-          if (!user) {
-            set.status = 401;
-            return { error: "Authentification requise" };
-          }
-        })
         .get("/health", () => ({ ok: true }))
         .get("/games", () => container.listGames())
+        .get("/me", ({ request }) => {
+          if (container.config.devNoAuth) return { authenticated: true, user: "dev" };
+          const user = request.headers.get("x-authentik-username");
+          return { authenticated: !!user, user: user ?? null };
+        })
+        .get("/auth/check", ({ request }) => {
+          const user = request.headers.get("x-authentik-username");
+          return { authenticated: !!user, user: user ?? null };
+        })
         .patch(
           "/games/:key",
           async ({ params, body }) => {
             await container.setGameLocal(params.key, body);
             return { ok: true };
           },
-          { params: t.Object({ key: t.String() }), body: LocalPatchBody },
+          {
+            params: t.Object({ key: t.String() }),
+            body: LocalPatchBody,
+            beforeHandle: ({ request, set }) => {
+              if (container.config.devNoAuth) return;
+              const user = request.headers.get("x-authentik-username");
+              if (!user) {
+                set.status = 401;
+                return { error: "Authentification requise" };
+              }
+            },
+          },
         )
         .post("/sync", ({ body }) => container.sync({ apply: body?.apply ?? false }), {
           body: t.Optional(t.Object({ apply: t.Boolean() })),
+          beforeHandle: ({ request, set }) => {
+            if (container.config.devNoAuth) return;
+            const user = request.headers.get("x-authentik-username");
+            if (!user) {
+              set.status = 401;
+              return { error: "Authentification requise" };
+            }
+          },
         }),
     );
 }

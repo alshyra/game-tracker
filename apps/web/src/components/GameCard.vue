@@ -7,6 +7,7 @@ import StatusBadge from "./StatusBadge.vue";
 const props = defineProps<{
   game: Game;
   updating: boolean;
+  readOnly: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -79,6 +80,7 @@ function onChange(event: Event): void {
         <div class="flex items-center gap-1.5">
           <span v-if="game.source === 'manual'" class="text-zinc-600">manuel</span>
           <button
+            v-if="!readOnly"
             type="button"
             class="rounded-md border px-1.5 py-0.5 text-[11px] transition"
             :class="
@@ -93,8 +95,9 @@ function onChange(event: Event): void {
           </button>
         </div>
       </div>
-      <label class="sr-only" :for="`status-${game.key}`">Statut de {{ game.title }}</label>
+      <label v-if="!readOnly" class="sr-only" :for="`status-${game.key}`">Statut de {{ game.title }}</label>
       <select
+        v-if="!readOnly"
         :id="`status-${game.key}`"
         :value="game.status"
         :disabled="updating"

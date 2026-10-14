@@ -6,6 +6,7 @@ import { formatHours } from "../status";
 const props = defineProps<{
   game: Game;
   updating: boolean;
+  readOnly: boolean;
 }>();
 
 const emit = defineEmits<(event: "toggle-online", key: string, online: boolean) => void>();
@@ -54,6 +55,7 @@ function onImageError(event: Event): void {
         </p>
         <div class="flex items-center">
           <button
+            v-if="!readOnly"
             type="button"
             class="no-drag rounded-md px-1.5 py-0.5 text-[11px] text-zinc-500 transition hover:bg-white/5 hover:text-teal-300 sm:opacity-0 sm:group-hover:opacity-100"
             title="Jeu en ligne — le retirer du kanban"
@@ -62,6 +64,7 @@ function onImageError(event: Event): void {
             ∞
           </button>
           <button
+            v-if="!readOnly"
             type="button"
             class="drag-handle touch-none cursor-grab rounded-md px-1.5 py-0.5 text-sm leading-none text-zinc-500 transition hover:bg-white/5 hover:text-zinc-200 active:cursor-grabbing sm:text-zinc-600 sm:group-hover:text-zinc-300"
             title="Glisser pour changer de statut"

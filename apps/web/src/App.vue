@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { Game, Status } from "@gameshelf/core";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/vue-query";
-import { computed, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { api } from "./api";
 import FilterBar from "./components/FilterBar.vue";
 import GameCard from "./components/GameCard.vue";
@@ -28,6 +28,28 @@ const queryClient = useQueryClient();
 const view = ref<View>("kanban");
 const filter = ref<Status | "all">("all");
 const search = ref("");
+
+const isAuthenticated = ref(false);
+
+onMounted(async () => {
+  try {
+    const response = await fetch("/api/auth/check", { redirect: "manual" });
+    if (response.ok) {
+      const data = await response.json();
+      isAuthenticated.value = data.authenticated ?? false;
+    } else {
+      isAuthenticated.value = false;
+    }
+  } catch {
+    isAuthenticated.value = false;
+  }
+});
+
+const readOnly = computed(() => !isAuthenticated.value);
+
+function login(): void {
+  window.location.href = "/api/auth/check";
+}
 
 const {
   data: gamesData,
@@ -157,14 +179,25 @@ function onToggleOnline(key: string, online: boolean): void {
           {{ games.length }} jeux · {{ formatHours(totalPlaytime) }} cumulées
         </p>
       </div>
-      <button
-        type="button"
-        :disabled="syncPending"
-        class="w-full rounded-xl border border-emerald-400/30 bg-emerald-500/15 px-4 py-2 text-sm font-medium text-emerald-200 transition hover:border-emerald-400/50 hover:bg-emerald-500/25 disabled:opacity-50 sm:w-auto"
-        @click="runSync()"
-      >
-        {{ syncPending ? "Synchronisation…" : "Synchroniser Steam" }}
-      </button>
+      <div class="flex items-center gap-2">
+        <button
+          v-if="!isAuthenticated"
+          type="button"
+          class="w-full rounded-xl border border-white/15 bg-white/5 px-4 py-2 text-sm font-medium text-zinc-200 transition hover:border-white/25 hover:bg-white/10 sm:w-auto"
+          @click="login()"
+        >
+          Se connecter
+        </button>
+        <button
+          v-if="isAuthenticated"
+          type="button"
+          :disabled="syncPending"
+          class="w-full rounded-xl border border-emerald-400/30 bg-emerald-500/15 px-4 py-2 text-sm font-medium text-emerald-200 transition hover:border-emerald-400/50 hover:bg-emerald-500/25 disabled:opacity-50 sm:w-auto"
+          @click="runSync()"
+        >
+          {{ syncPending ? "Synchronisation…" : "Synchroniser Steam" }}
+        </button>
+      </div>
     </header>
 
     <div
@@ -246,6 +279,7 @@ function onToggleOnline(key: string, online: boolean): void {
       :key="boardKey"
       :games="kanbanGames"
       :updating-key="updatingKey"
+      :read-only="readOnly"
       @status-change="onStatusChange"
       @toggle-online="onToggleOnline"
     />
@@ -266,6 +300,7 @@ function onToggleOnline(key: string, online: boolean): void {
         :key="game.key"
         :game="game"
         :updating="updatingKey === game.key"
+        :read-only="readOnly"
         @status-change="onStatusChange"
         @toggle-online="onToggleOnline"
       />

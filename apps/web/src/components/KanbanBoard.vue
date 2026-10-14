@@ -8,6 +8,7 @@ import KanbanCard from "./KanbanCard.vue";
 const props = defineProps<{
   games: Game[];
   updatingKey: string | null;
+  readOnly: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -56,12 +57,13 @@ function onAdd(event: DraggableEvent<Game>, status: Status): void {
         group="games"
         :sort="false"
         :animation="130"
-        handle=".drag-handle"
+        :handle="readOnly ? '' : '.drag-handle'"
         filter=".no-drag"
         ghost-class="opacity-40"
         drag-class="rotate-1"
         class="flex min-h-32 flex-1 flex-col gap-2 overflow-y-auto p-2 pt-0"
         :data-status="column.status"
+        :disabled="readOnly"
         @add="(event) => onAdd(event, column.status)"
       >
         <KanbanCard
@@ -69,6 +71,7 @@ function onAdd(event: DraggableEvent<Game>, status: Status): void {
           :key="game.key"
           :game="game"
           :updating="updatingKey === game.key"
+          :read-only="readOnly"
           @toggle-online="(key, online) => emit('toggle-online', key, online)"
         />
       </VueDraggable>

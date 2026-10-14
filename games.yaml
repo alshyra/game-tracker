@@ -41,5 +41,171 @@ games:
   "377160":
     steam_appid: 377160
     created_at: 2026-09-21T12:41:03.644Z
-    status: abandonne
-    updated_at: 2026-09-21T12:41:03.644Z
+    status: en_pause
+    updated_at: 2026-09-21T12:41:07.128Z
+  "22370":
+    steam_appid: 22370
+    created_at: 2026-09-21T12:41:11.219Z
+    status: termine
+    updated_at: 2026-09-21T12:41:11.219Z
+  "2420110":
+    steam_appid: 2420110
+    created_at: 2026-09-21T12:41:12.428Z
+    status: termine
+    updated_at: 2026-09-21T12:41:12.428Z
+  "242050":
+    steam_appid: 242050
+    created_at: 2026-09-21T12:41:13.556Z
+    status: termine
+    updated_at: 2026-09-21T12:41:13.556Z
+  "208650":
+    steam_appid: 208650
+    created_at: 2026-09-21T12:41:14.484Z
+    status: termine
+    updated_at: 2026-09-21T12:41:14.484Z
+  "2842040":
+    steam_appid: 2842040
+    created_at: 2026-09-21T12:41:15.560Z
+    status: termine
+    updated_at: 2026-09-21T12:41:15.560Z
+  "1496790":
+    steam_appid: 1496790
+    created_at: 2026-09-21T12:41:16.654Z
+    status: termine
+    updated_at: 2026-09-21T12:41:16.654Z
+  "20920":
+    steam_appid: 20920
+    created_at: 2026-09-21T12:41:17.763Z
+    status: termine
+    updated_at: 2026-09-21T12:41:17.763Z
+  "356190":
+    steam_appid: 356190
+    created_at: 2026-09-21T12:41:18.635Z
+    status: termine
+    updated_at: 2026-09-21T12:41:18.635Z
+  "1774580":
+    steam_appid: 1774580
+    created_at: 2026-09-21T12:41:19.640Z
+    status: termine
+    updated_at: 2026-09-21T12:41:19.640Z
+  "35140":
+    steam_appid: 35140
+    created_at: 2026-09-21T12:41:20.672Z
+    status: termine
+    updated_at: 2026-09-21T12:41:20.672Z
+  "220240":
+    steam_appid: 220240
+    created_at: 2026-09-21T12:41:21.546Z
+    status: termine
+    updated_at: 2026-09-21T12:41:21.546Z
+  "202170":
+    steam_appid: 202170
+    created_at: 2026-09-21T12:41:22.442Z
+    status: termine
+    updated_at: 2026-09-21T12:41:22.442Z
+  "241930":
+    steam_appid: 241930
+    created_at: 2026-09-21T12:41:23.633Z
+    status: en_pause
+    updated_at: 2026-09-21T12:41:28.382Z
+  "1895880":
+    steam_appid: 1895880
+    created_at: 2026-09-21T12:41:35.386Z
+    status: termine
+    updated_at: 2026-09-21T12:41:35.386Z
+  "1299510":
+    steam_appid: 1299510
+    created_at: 2026-09-21T12:41:36.440Z
+    status: termine
+    updated_at: 2026-09-21T12:41:36.440Z
+  "209000":
+    steam_appid: 209000
+    created_at: 2026-09-21T12:41:37.762Z
+    status: termine
+    updated_at: 2026-09-21T12:41:37.762Z
+  "1172380":
+    steam_appid: 1172380
+    created_at: 2026-09-21T12:41:38.840Z
+    status: termine
+    updated_at: 2026-09-21T12:41:38.840Z
+  "243470":
+    steam_appid: 243470
+    created_at: 2026-09-21T12:41:41.071Z
+    status: en_pause
+    updated_at: 2026-09-21T12:41:41.071Z
+  "200260":
+    steam_appid: 200260
+    created_at: 2026-09-21T12:41:46.080Z
+    status: termine
+    updated_at: 2026-09-21T12:41:46.080Z
+  "208480":
+    steam_appid: 208480
+    created_at: 2026-09-21T12:41:48.011Z
+    status: termine
+    updated_at: 2026-09-21T12:41:48.011Z
+  "750920":
+    steam_appid: 750920
+    created_at: 2026-09-21T12:41:50.747Z
+    status: termine
+    updated_at: 2026-09-21T12:41:50.747Z
+  "2001120":
+    steam_appid: 2001120
+    created_at: 2026-09-21T12:41:52.333Z
+    status: termine
+    updated_at: 2026-09-21T12:52:32.386Z
+    online: true
+  "49520":
+    steam_appid: 49520
+    created_at: 2026-09-21T12:41:54.519Z
+    status: termine
+    updated_at: 2026-09-21T12:41:54.519Z
+  "10180":
+    steam_appid: 10180
+    created_at: 2026-09-21T12:43:10.531Z
+    status: termine
+    updated_at: 2026-09-21T12:43:10.531Z
+  "730":
+    steam_appid: 730
+    created_at: 2026-09-21T12:52:32.213Z
+    online: true
+    updated_at: 2026-09-21T12:52:32.213Z
+  "215080":
+    steam_appid: 215080
+    created_at: 2026-09-21T12:52:32.259Z
+    online: true
+    updated_at: 2026-09-21T12:52:32.259Z
+  "218230":
+    steam_appid: 218230
+    created_at: 2026-09-21T12:52:32.286Z
+    online: true
+    updated_at: 2026-09-21T12:52:32.286Z
+  "238960":
+    steam_appid: 238960
+    created_at: 2026-09-21T12:52:32.304Z
+    online: true
+    updated_at: 2026-09-21T12:52:32.304Z
+  "346110":
+    steam_appid: 346110
+    created_at: 2026-09-21T12:52:32.322Z
+    online: true
+    updated_at: 2026-09-21T12:52:32.322Z
+  "386360":
+    steam_appid: 386360
+    created_at: 2026-09-21T12:52:32.337Z
+    online: true
+    updated_at: 2026-09-21T12:52:32.337Z
+  "407530":
+    steam_appid: 407530
+    created_at: 2026-09-21T12:52:32.349Z
+    online: true
+    updated_at: 2026-09-21T12:52:32.349Z
+  "813820":
+    steam_appid: 813820
+    created_at: 2026-09-21T12:52:32.361Z
+    online: true
+    updated_at: 2026-09-21T12:52:32.361Z
+  "945360":
+    steam_appid: 945360
+    created_at: 2026-09-21T12:52:32.370Z
+    online: true
+    updated_at: 2026-09-21T12:52:32.370Z
