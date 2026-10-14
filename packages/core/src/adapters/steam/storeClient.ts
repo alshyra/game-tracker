@@ -1,5 +1,7 @@
 import {
   type AppDetails,
+  type GameSearchPort,
+  type GameSearchResult,
   SteamAuthError,
   SteamRateLimitError,
   type SteamStorePort,
@@ -17,16 +19,25 @@ type RawNode = {
   };
 };
 
+type RawSearchItem = {
+  type?: string;
+  id?: number;
+  name?: string;
+  metascore?: string;
+  tiny_image?: string;
+};
+
 export interface SteamStoreClientOptions {
   paceMs?: number;
   fetchImpl?: FetchLike;
 }
 
 /**
- * Client du magasin Steam (`appdetails`) : public, sans clé. Un appel par jeu,
- * l'API ne supportant pas le multi-appid. Requêtes espacées.
+ * Client du magasin Steam (`appdetails` + `storesearch`) : public, sans clé.
+ * Un appel par jeu pour `appdetails` (l'API ne supporte pas le multi-appid) ;
+ * `storesearch` accepte un terme libre. Requêtes espacées.
  */
-export class SteamStoreClient implements SteamStorePort {
+export class SteamStoreClient implements SteamStorePort, GameSearchPort {
   private readonly paceMs: number;
   private readonly doFetch: FetchLike;
 
@@ -74,5 +85,44 @@ export class SteamStoreClient implements SteamStorePort {
       };
     }
     throw new SteamRateLimitError();
+  }
+
+  /** Recherche par titre : renvoie les jeux correspondants (magasin public, sans clé). */
+  async searchGames(term: string): Promise<GameSearchResult[]> {
+    const query = term.trim();
+    if (!query) return [];
+
+    const url = new URL(`${STORE}/api/storesearch/`);
+    url.searchParams.set("term", query);
+    url.searchParams.set("cc", "fr");
+    url.searchParams.set("l", "fr");
+
+    const res = await this.doFetch(url, {
+      redirect: "follow",
+      headers: { "User-Agent": "gameshelf" },
+    });
+    await Bun.sleep(this.paceMs);
+
+    if (res.status === 429) throw new SteamRateLimitError();
+    if (res.status === 401 || res.status === 403) throw new SteamAuthError();
+    if (!res.ok) return [];
+
+    const contentType = res.headers.get("content-type") ?? "";
+    if (!contentType.includes("json")) return [];
+
+    const payload = (await res.json()) as { items?: RawSearchItem[] };
+    const results: GameSearchResult[] = [];
+    for (const item of payload.items ?? []) {
+      if (item.type === "sub") continue;
+      if (typeof item.id !== "number" || typeof item.name !== "string") continue;
+      results.push({
+        appid: item.id,
+        title: item.name,
+        metascore:
+          typeof item.metascore === "string" && item.metascore.length > 0 ? item.metascore : null,
+        tiny_image: typeof item.tiny_image === "string" ? item.tiny_image : null,
+      });
+    }
+    return results;
   }
 }

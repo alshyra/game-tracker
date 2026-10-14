@@ -1,6 +1,7 @@
 export * from "./adapters/steam/client";
 export * from "./adapters/steam/storeClient";
 export * from "./adapters/store/yamlStore";
+export * from "./applications/addGame";
 export * from "./applications/detectOnline";
 export * from "./applications/listGames";
 export * from "./applications/setGameLocal";

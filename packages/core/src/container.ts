@@ -2,6 +2,7 @@ import { join } from "node:path";
 import { SteamHttpClient } from "./adapters/steam/client";
 import { SteamStoreClient } from "./adapters/steam/storeClient";
 import { YamlStore } from "./adapters/store/yamlStore";
+import { type AddGameInput, type AddGameResult, addGame } from "./applications/addGame";
 import {
   type DetectOnlineOptions,
   type DetectOnlineResult,
@@ -11,7 +12,7 @@ import { listGames } from "./applications/listGames";
 import { setGameLocal } from "./applications/setGameLocal";
 import { type SyncOptions, type SyncResult, syncLibrary } from "./applications/syncLibrary";
 import type { Game } from "./domain/game";
-import type { LocalPatch } from "./domain/ports";
+import type { GameSearchResult, LocalPatch } from "./domain/ports";
 
 /** Configuration minimale pour brancher les adapters au domaine. */
 export interface CoreConfig {
@@ -26,6 +27,10 @@ export interface CoreServices {
   setGameLocal(key: string, patch: LocalPatch): Promise<void>;
   sync(options?: SyncOptions): Promise<SyncResult>;
   detectOnline(options?: DetectOnlineOptions): Promise<DetectOnlineResult>;
+  /** Recherche un jeu par titre sur le magasin Steam (public, sans clé). */
+  searchGames(term: string): Promise<GameSearchResult[]>;
+  /** Ajoute un jeu (résout les métadonnées/jaquettes Steam par titre). */
+  addGame(input: AddGameInput): Promise<AddGameResult>;
 }
 
 /**
@@ -44,6 +49,8 @@ export function createCoreServices(config: CoreConfig): CoreServices {
     listGames: () => listGames(store),
     setGameLocal: (key, patch) => setGameLocal(store, key, patch),
     sync: (options) => syncLibrary({ steam, store }, options),
-    detectOnline: (options) => detectOnline({ store, steamStore }, options),
+    detectOnline: (options) => detectOnline({ store, steamStore }),
+    searchGames: (term) => steamStore.searchGames(term),
+    addGame: (input) => addGame({ store, search: steamStore }, input),
   };
 }

@@ -85,3 +85,16 @@ export interface StorePort {
   readSnapshot(): Promise<Snapshot | null>;
   writeSnapshot(snapshot: Snapshot): Promise<void>;
 }
+
+/** Résultat de recherche sur le magasin Steam (public, sans clé). */
+export interface GameSearchResult {
+  appid: number;
+  title: string;
+  metascore: string | null;
+  tiny_image: string | null;
+}
+
+/** Recherche d'un jeu par titre sur le magasin (pour ajouter un jeu non possédé). */
+export interface GameSearchPort {
+  searchGames(term: string): Promise<GameSearchResult[]>;
+}
