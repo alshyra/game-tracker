@@ -10,12 +10,8 @@ onMounted(() => {
   void refresh();
 });
 
-function openWishlist(): void {
-  void router.push("/wishlist");
-}
-
-function openTracker(): void {
-  void router.push("/app");
+function go(path: string): void {
+  void router.push(path);
 }
 </script>
 
@@ -34,17 +30,24 @@ function openTracker(): void {
       </span>
       <h1 class="text-4xl font-semibold tracking-tight text-zinc-50 sm:text-5xl">Gameshelf</h1>
       <p class="mt-4 text-sm leading-relaxed text-zinc-400">
-        Ma collection de jeux vidéo — backlog, en cours, terminés, et ma
-        <span class="text-zinc-200">wishlist publique</span>.
+        Ma collection — jeux vidéo, livres et BD. Wishlist publique, édition réservée au
+        propriétaire.
       </p>
 
       <div class="mt-10 flex w-full flex-col gap-3">
         <button
           type="button"
           class="rounded-xl bg-emerald-500/15 px-5 py-3 text-sm font-medium text-emerald-200 ring-1 ring-emerald-400/30 transition hover:bg-emerald-500/25 hover:ring-emerald-400/50"
-          @click="openWishlist"
+          @click="go('/wishlist')"
         >
           Voir la wishlist
+        </button>
+        <button
+          type="button"
+          class="rounded-xl bg-white/5 px-5 py-3 text-sm font-medium text-zinc-200 ring-1 ring-white/15 transition hover:bg-white/10 hover:ring-white/25"
+          @click="go('/library')"
+        >
+          Bibliothèque (livres &amp; BD)
         </button>
         <button
           v-if="!isAuthenticated"
@@ -58,7 +61,7 @@ function openTracker(): void {
           v-else
           type="button"
           class="rounded-xl bg-white/5 px-5 py-3 text-sm font-medium text-zinc-200 ring-1 ring-white/15 transition hover:bg-white/10 hover:ring-white/25"
-          @click="openTracker"
+          @click="go('/app')"
         >
           Ouvrir mon tracker
         </button>

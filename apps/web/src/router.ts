@@ -1,5 +1,6 @@
 import { createRouter, createWebHashHistory } from "vue-router";
 import Landing from "./views/Landing.vue";
+import Library from "./views/Library.vue";
 import Tracker from "./views/Tracker.vue";
 import Wishlist from "./views/Wishlist.vue";
 
@@ -13,6 +14,7 @@ export const router = createRouter({
     { path: "/", name: "landing", component: Landing },
     { path: "/wishlist", name: "wishlist", component: Wishlist },
     { path: "/app", name: "app", component: Tracker },
+    { path: "/library", name: "library", component: Library },
     { path: "/:pathMatch(.*)*", redirect: "/" },
   ],
 });

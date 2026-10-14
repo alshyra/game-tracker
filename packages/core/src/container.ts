@@ -1,16 +1,23 @@
 import { join } from "node:path";
+import { OpenLibraryClient } from "./adapters/openlibrary/client";
 import { SteamHttpClient } from "./adapters/steam/client";
 import { SteamStoreClient } from "./adapters/steam/storeClient";
+import { BookYamlStore } from "./adapters/store/bookYamlStore";
 import { YamlStore } from "./adapters/store/yamlStore";
+import { type AddBookInput, type AddBookResult, addBook } from "./applications/addBook";
 import { type AddGameInput, type AddGameResult, addGame } from "./applications/addGame";
 import {
   type DetectOnlineOptions,
   type DetectOnlineResult,
   detectOnline,
 } from "./applications/detectOnline";
+import { listBooks } from "./applications/listBooks";
 import { listGames } from "./applications/listGames";
+import { setBookLocal } from "./applications/setBookLocal";
 import { setGameLocal } from "./applications/setGameLocal";
 import { type SyncOptions, type SyncResult, syncLibrary } from "./applications/syncLibrary";
+import type { Book } from "./domain/book";
+import type { BookPatch, BookSearchResult } from "./domain/bookPorts";
 import type { Game } from "./domain/game";
 import type { GameSearchResult, LocalPatch } from "./domain/ports";
 
@@ -27,15 +34,18 @@ export interface CoreServices {
   setGameLocal(key: string, patch: LocalPatch): Promise<void>;
   sync(options?: SyncOptions): Promise<SyncResult>;
   detectOnline(options?: DetectOnlineOptions): Promise<DetectOnlineResult>;
-  /** Recherche un jeu par titre sur le magasin Steam (public, sans clé). */
   searchGames(term: string): Promise<GameSearchResult[]>;
-  /** Ajoute un jeu (résout les métadonnées/jaquettes Steam par titre). */
   addGame(input: AddGameInput): Promise<AddGameResult>;
+  // Livres / BD
+  listBooks(): Promise<Book[]>;
+  setBookLocal(key: string, patch: BookPatch): Promise<void>;
+  searchBooks(term: string): Promise<BookSearchResult[]>;
+  addBook(input: AddBookInput): Promise<AddBookResult>;
 }
 
 /**
- * Composition root partagé : branche les adapters (Steam, store YAML) sur les
- * cas d'usage. Ne connaît ni HTTP ni CLI — chaque interface l'enveloppe.
+ * Composition root partagé : branche les adapters (Steam, Open Library, stores
+ * YAML) sur les cas d'usage. Ne connaît ni HTTP ni CLI.
  */
 export function createCoreServices(config: CoreConfig): CoreServices {
   const steam = new SteamHttpClient({ key: config.steamApiKey, steamId: config.steamId });
@@ -45,6 +55,9 @@ export function createCoreServices(config: CoreConfig): CoreServices {
     join(config.root, "data/steam-snapshot.json"),
   );
 
+  const openLibrary = new OpenLibraryClient();
+  const bookStore = new BookYamlStore(join(config.root, "books.yaml"));
+
   return {
     listGames: () => listGames(store),
     setGameLocal: (key, patch) => setGameLocal(store, key, patch),
@@ -52,5 +65,9 @@ export function createCoreServices(config: CoreConfig): CoreServices {
     detectOnline: (options) => detectOnline({ store, steamStore }),
     searchGames: (term) => steamStore.searchGames(term),
     addGame: (input) => addGame({ store, search: steamStore }, input),
+    listBooks: () => listBooks(bookStore),
+    setBookLocal: (key, patch) => setBookLocal(bookStore, key, patch),
+    searchBooks: (term) => openLibrary.searchBooks(term),
+    addBook: (input) => addBook({ store: bookStore, search: openLibrary }, input),
   };
 }

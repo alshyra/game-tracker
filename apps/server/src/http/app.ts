@@ -1,4 +1,4 @@
-import { StatusSchema } from "@gameshelf/core";
+import { BookKindSchema, BookStatusSchema, StatusSchema } from "@gameshelf/core";
 import { Elysia, t } from "elysia";
 import type { Container } from "../container";
 import { createMcpHandler } from "./mcp";
@@ -19,12 +19,38 @@ const AddGameBody = t.Object({
   status: t.Optional(StatusSchema),
 });
 
+const BookPatchBody = t.Partial(
+  t.Object({
+    title: t.String(),
+    authors: t.Array(t.String()),
+    kind: BookKindSchema,
+    status: BookStatusSchema,
+    rating: t.Union([t.Number(), t.Null()]),
+    notes: t.Union([t.String(), t.Null()]),
+    isbn: t.Union([t.String(), t.Null()]),
+    year: t.Union([t.Number(), t.Null()]),
+    cover_url: t.Union([t.String(), t.Null()]),
+  }),
+);
+
+const AddBookBody = t.Object({
+  title: t.String({ minLength: 1 }),
+  kind: t.Optional(BookKindSchema),
+  status: t.Optional(BookStatusSchema),
+  authors: t.Optional(t.Array(t.String())),
+  cover_url: t.Optional(t.Union([t.String(), t.Null()])),
+  year: t.Optional(t.Union([t.Number(), t.Null()])),
+  olKey: t.Optional(t.Union([t.String(), t.Null()])),
+});
+
 /**
- * Interface HTTP (driving adapter). Ne contient aucune logique métier : elle
- * traduit les requêtes en appels de cas d'usage et mappe les erreurs du domaine.
+ * Interface HTTP (driving adapter). Aucune logique métier : elle traduit les
+ * requêtes en appels de cas d'usage et mappe les erreurs du domaine.
  *
- * Routes publiques (lecture seule) : /api/health, /api/games, /api/games/search, /api/me
- * Routes protégées (écriture) : POST /api/games, PATCH /api/games/:key, POST /api/sync
+ * Routes publiques (lecture seule) : /api/health, /api/games, /api/games/search,
+ *   /api/books, /api/books/search, /api/me
+ * Routes protégées (écriture) : POST /api/games, PATCH /api/games/:key, POST /api/sync,
+ *   POST /api/books, PATCH /api/books/:key
  */
 export function createApp(container: Container) {
   const mcpHandler = createMcpHandler(container, container.config.mcpToken);
@@ -40,6 +66,12 @@ export function createApp(container: Container) {
       set.status = 401;
       return { error: "Authentification requise" };
     }
+  };
+
+  const me = ({ request }: { request: Request }) => {
+    if (container.config.devNoAuth) return { authenticated: true, user: "dev" };
+    const user = request.headers.get("x-authentik-username");
+    return { authenticated: !!user, user: user ?? null };
   };
 
   return new Elysia()
@@ -69,18 +101,12 @@ export function createApp(container: Container) {
     .group("/api", (app) =>
       app
         .get("/health", () => ({ ok: true }))
+        .get("/me", me)
+        .get("/auth/check", me)
+        // ── Jeux ──────────────────────────────────────────────
         .get("/games", () => container.listGames())
         .get("/games/search", ({ query }) => container.searchGames(query.q), {
           query: t.Object({ q: t.String({ minLength: 1 }) }),
-        })
-        .get("/me", ({ request }) => {
-          if (container.config.devNoAuth) return { authenticated: true, user: "dev" };
-          const user = request.headers.get("x-authentik-username");
-          return { authenticated: !!user, user: user ?? null };
-        })
-        .get("/auth/check", ({ request }) => {
-          const user = request.headers.get("x-authentik-username");
-          return { authenticated: !!user, user: user ?? null };
         })
         .post("/games", ({ body }) => container.addGame(body), {
           body: AddGameBody,
@@ -101,7 +127,28 @@ export function createApp(container: Container) {
         .post("/sync", ({ body }) => container.sync({ apply: body?.apply ?? false }), {
           body: t.Optional(t.Object({ apply: t.Boolean() })),
           beforeHandle: requireAuth,
-        }),
+        })
+        // ── Livres / BD ───────────────────────────────────────
+        .get("/books", () => container.listBooks())
+        .get("/books/search", ({ query }) => container.searchBooks(query.q), {
+          query: t.Object({ q: t.String({ minLength: 1 }) }),
+        })
+        .post("/books", ({ body }) => container.addBook(body), {
+          body: AddBookBody,
+          beforeHandle: requireAuth,
+        })
+        .patch(
+          "/books/:key",
+          async ({ params, body }) => {
+            await container.setBookLocal(params.key, body);
+            return { ok: true };
+          },
+          {
+            params: t.Object({ key: t.String() }),
+            body: BookPatchBody,
+            beforeHandle: requireAuth,
+          },
+        ),
     );
 }
 
