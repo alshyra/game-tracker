@@ -44,6 +44,17 @@ const AddBookBody = t.Object({
 });
 
 /**
+ * Convertit un `?redirect=` (chemin relatif) en route hash du SPA.
+ * Anti open-redirect : n'accepte qu'un chemin simple (`/app`), jamais une URL
+ * absolue ni un chemin protocol-relative (`//evil`). Renvoie `null` si invalide.
+ */
+function safeRedirect(value: string | undefined): string | null {
+  if (!value || !value.startsWith("/") || value.startsWith("//")) return null;
+  if (!/^\/[A-Za-z0-9\-_/]*$/.test(value)) return null;
+  return `/#${value}`;
+}
+
+/**
  * Interface HTTP (driving adapter). Aucune logique métier : elle traduit les
  * requêtes en appels de cas d'usage et mappe les erreurs du domaine.
  *
@@ -71,6 +82,28 @@ export function createApp(container: Container) {
   const me = ({ request }: { request: Request }) => {
     if (container.config.devNoAuth) return { authenticated: true, user: "dev" };
     const user = request.headers.get("x-authentik-username");
+    return { authenticated: !!user, user: user ?? null };
+  };
+
+  /**
+   * `/api/auth/check` — protégé par Authentik (forward-auth Traefik).
+   * - Sans `?redirect` : renvoie l'état JSON (le front l'appelle avec
+   *   `redirect: "manual"` pour détecter la session).
+   * - Avec `?redirect=<chemin>` et utilisateur authentifié : 302 vers la route
+   *   hash du SPA (`/#/app`) — c'est ce qui referme le flow SSO.
+   */
+  const authCheck = ({
+    request,
+    query,
+  }: {
+    request: Request;
+    query: { redirect?: string };
+  }) => {
+    const user = container.config.devNoAuth ? "dev" : request.headers.get("x-authentik-username");
+    const target = safeRedirect(query.redirect);
+    if (user && target) {
+      return new Response(null, { status: 302, headers: { location: target } });
+    }
     return { authenticated: !!user, user: user ?? null };
   };
 
@@ -102,7 +135,9 @@ export function createApp(container: Container) {
       app
         .get("/health", () => ({ ok: true }))
         .get("/me", me)
-        .get("/auth/check", me)
+        .get("/auth/check", authCheck, {
+          query: t.Object({ redirect: t.Optional(t.String()) }),
+        })
         // ── Jeux ──────────────────────────────────────────────
         .get("/games", () => container.listGames())
         .get("/games/search", ({ query }) => container.searchGames(query.q), {
