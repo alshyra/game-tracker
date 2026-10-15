@@ -1,4 +1,4 @@
-import type { BookKind, BookStatus } from "../domain/book";
+import type { BookKind, BookSource, BookStatus } from "../domain/book";
 import type {
   BookPatch,
   BookSearchPort,
@@ -16,6 +16,11 @@ export interface AddBookInput {
   cover_url?: string | null;
   year?: number | null;
   olKey?: string | null;
+  isbn?: string | null;
+  series?: string | null;
+  tome?: number | null;
+  /** Clé du catalogue BD local (ex. `soleil:elfes-t11`). */
+  catalogKey?: string | null;
 }
 
 export interface AddBookResult {
@@ -32,10 +37,16 @@ function pickBest(results: BookSearchResult[], title: string): BookSearchResult 
   return exact ?? results[0] ?? null;
 }
 
+/** Clé locale stable d'un album issu du catalogue BD. */
+export function catalogBookKey(catalogKey: string): string {
+  return `catalog:${catalogKey}`;
+}
+
 /**
- * Ajoute un livre/BD : recherche Open Library par titre (sauf métadonnées déjà
- * fournies), récupère couverture/auteurs/année, crée une entrée locale. Sans
- * match → entrée `manual:<slug>`.
+ * Ajoute un livre/BD. Si des métadonnées catalogue/OL sont fournies (choix
+ * explicite d'un résultat), elles sont utilisées telles quelles ; sinon une
+ * recherche Open Library est tentée, et en dernier recours une entrée
+ * `manual:<slug>` est créée.
  */
 export async function addBook(
   deps: { store: BookStorePort; search: BookSearchPort },
@@ -49,10 +60,15 @@ export async function addBook(
   let authors = input.authors ?? [];
   let cover = input.cover_url ?? null;
   let year = input.year ?? null;
+  let isbn = input.isbn ?? null;
+  let series = input.series ?? null;
+  let tome = input.tome ?? null;
   let olKey = input.olKey ?? null;
+  let source: BookSource = input.catalogKey ? "catalog" : "manual";
   let finalTitle = title;
 
-  const provided = input.authors !== undefined || input.olKey !== undefined;
+  const provided =
+    input.authors !== undefined || input.olKey !== undefined || input.catalogKey !== undefined;
   if (!provided) {
     const match = pickBest(await deps.search.searchBooks(title), title);
     if (match) {
@@ -61,10 +77,18 @@ export async function addBook(
       cover = match.cover_url;
       year = match.year;
       olKey = match.olKey;
+      isbn = match.isbn ?? null;
+      series = match.series ?? null;
+      tome = match.tome ?? null;
+      source = match.olKey ? "openlibrary" : (match.source ?? "manual");
     }
   }
 
-  const key = olKey ? `ol:${olKey}` : `manual:${slugify(title)}`;
+  const key = input.catalogKey
+    ? catalogBookKey(input.catalogKey)
+    : olKey
+      ? `ol:${olKey}`
+      : `manual:${slugify(title)}`;
 
   const local = await deps.store.readBooks();
   if (local.has(key)) {
@@ -78,6 +102,10 @@ export async function addBook(
     status,
     cover_url: cover,
     year,
+    isbn,
+    series,
+    tome,
+    source,
   };
   await deps.store.writeBookFields(key, patch);
   return { key, title: finalTitle, status, created: true };

@@ -21,7 +21,11 @@ export const BOOK_STATUSES: readonly BookStatus[] = [
   "wishlist",
 ];
 
-export const BookSourceSchema = Type.Union([Type.Literal("openlibrary"), Type.Literal("manual")]);
+export const BookSourceSchema = Type.Union([
+  Type.Literal("openlibrary"),
+  Type.Literal("catalog"),
+  Type.Literal("manual"),
+]);
 export type BookSource = Static<typeof BookSourceSchema>;
 
 export const BookSchema = Type.Object({
@@ -35,6 +39,10 @@ export const BookSchema = Type.Object({
   notes: Type.Union([Type.String(), Type.Null()]),
   isbn: Type.Union([Type.String(), Type.Null()]),
   year: Type.Union([Type.Number(), Type.Null()]),
+  /** Série d'appartenance (BD) — ex. `Elfes`. */
+  series: Type.Union([Type.String(), Type.Null()]),
+  /** Numéro de tome dans la série (BD). */
+  tome: Type.Union([Type.Number(), Type.Null()]),
   source: BookSourceSchema,
   created_at: Type.Union([Type.String(), Type.Null()]),
   updated_at: Type.Union([Type.String(), Type.Null()]),

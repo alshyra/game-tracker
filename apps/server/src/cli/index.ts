@@ -147,4 +147,91 @@ program
     }
   });
 
+// ── Catalogue BD local ──────────────────────────────────────────
+
+program
+  .command("catalog-ingest")
+  .description("Scrape le catalogue BD (Éditions Soleil) → data/catalog.json")
+  .option("--apply", "écrit réellement le catalogue", false)
+  .option("--covers", "télécharge aussi les couvertures compressées", false)
+  .option("--delay <ms>", "délai entre requêtes (ms)", "400")
+  .action(async (options: { apply: boolean; covers: boolean; delay: string }) => {
+    const container = buildContainer();
+    console.log(pc.bold("Catalogue — Terres d'Arran (Éditions Soleil)"));
+    console.log(pc.dim(`  sitemap + JSON-LD, ${options.delay} ms entre requêtes…\n`));
+    const result = await container.ingestCatalog({
+      apply: options.apply,
+      withCovers: options.covers,
+      onProgress: (p) => {
+        if (p.phase === "album") {
+          const mark = p.ok ? pc.green("✓") : pc.red("✗");
+          const slug = p.url.split("/album-")[1] ?? p.url;
+          process.stdout.write(`  ${mark} ${slug}\n`);
+        } else {
+          const mark = p.ok ? pc.green("✓") : pc.red("✗");
+          process.stdout.write(`  cover ${mark} ${p.url} (${p.done})\n`);
+        }
+      },
+    });
+    const bySeries = new Map<string, number>();
+    for (const entry of result.entries) {
+      bySeries.set(entry.series, (bySeries.get(entry.series) ?? 0) + 1);
+    }
+    console.log("");
+    for (const [series, count] of bySeries) {
+      console.log(`  ${series.padEnd(20)} ${String(count).padStart(3)} albums`);
+    }
+    console.log("");
+    console.log(`  albums   : ${result.albums}`);
+    if (options.covers) console.log(`  covers   : ${result.covers}`);
+    console.log(`  échecs   : ${result.failed}`);
+    if (result.written) {
+      console.log(pc.green("\n  Catalogue écrit (data/catalog.json)."));
+    } else {
+      console.log(pc.dim("\n  Simulation : rien écrit. Relance avec --apply."));
+    }
+  });
+
+program
+  .command("catalog-search")
+  .description("Cherche dans le catalogue BD local")
+  .argument("<terme>", "terme de recherche (titre, série, auteur…)")
+  .action(async (term: string) => {
+    const container = buildContainer();
+    const results = await container.searchCatalog(term, 20);
+    if (results.length === 0) {
+      console.log(pc.yellow(`Aucun résultat pour « ${term} ».`));
+      return;
+    }
+    console.log(pc.bold(`\n${results.length} résultat(s)`));
+    for (const entry of results) {
+      const tome = entry.tome ? ` t${String(entry.tome).padStart(2, "0")}` : "";
+      console.log(`  ${entry.series}${tome} — ${entry.title} ${pc.dim(entry.isbn ?? "")}`);
+    }
+  });
+
+program
+  .command("catalog-seed")
+  .description("Préremplit books.yaml depuis le catalogue (Elfes t01–t10 possédés, reste wishlist)")
+  .option("--apply", "écrit réellement books.yaml", false)
+  .action(async (options: { apply: boolean }) => {
+    const container = buildContainer();
+    const result = await container.seedBooks({ apply: options.apply });
+    const counts = new Map<string, number>();
+    for (const entry of result.entries) {
+      counts.set(entry.status, (counts.get(entry.status) ?? 0) + 1);
+    }
+    console.log(pc.bold("Préremplissage books.yaml"));
+    for (const [status, count] of counts) {
+      console.log(`  ${status.padEnd(12)} ${count}`);
+    }
+    console.log(`\n  créés    : ${result.created}`);
+    console.log(`  ignorés  : ${result.skipped} (déjà présents)`);
+    if (result.written) {
+      console.log(pc.green("\n  books.yaml écrit."));
+    } else {
+      console.log(pc.dim("\n  Simulation : rien écrit. Relance avec --apply."));
+    }
+  });
+
 await program.parseAsync(process.argv);

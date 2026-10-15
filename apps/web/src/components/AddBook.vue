@@ -28,7 +28,7 @@ function extractError(err: unknown, fallback: string): string {
   return fallback;
 }
 
-const runSearch = useDebounceFn(async (term: string) => {
+const runSearch = useDebounceFn(async (term: string, searchKind: BookKind) => {
   const q = term.trim();
   if (q.length < 2) {
     results.value = [];
@@ -37,7 +37,10 @@ const runSearch = useDebounceFn(async (term: string) => {
   }
   searching.value = true;
   try {
-    const { data, error: searchError } = await api.api.books.search.get({ query: { q } });
+    // Les BD passent par le catalogue local (Soleil) + complément Open Library.
+    const { data, error: searchError } = await api.api.books.search.get({
+      query: { q, kind: searchKind },
+    });
     if (searchError) throw searchError;
     results.value = (data ?? []) as BookSearchResult[];
     searched.value = true;
@@ -48,8 +51,8 @@ const runSearch = useDebounceFn(async (term: string) => {
   }
 }, 400);
 
-watch(title, (value) => {
-  void runSearch(value);
+watch([title, kind], ([value, currentKind]) => {
+  void runSearch(value, currentKind);
 });
 
 const addMutation = useMutation({
@@ -61,6 +64,10 @@ const addMutation = useMutation({
     cover_url?: string | null;
     year?: number | null;
     olKey?: string | null;
+    isbn?: string | null;
+    series?: string | null;
+    tome?: number | null;
+    catalogKey?: string | null;
   }) => {
     const { data, error: addError } = await api.api.books.post(payload);
     if (addError) throw addError;
@@ -89,7 +96,23 @@ function addResult(result: BookSearchResult): void {
     cover_url: result.cover_url,
     year: result.year,
     olKey: result.olKey,
+    isbn: result.isbn ?? null,
+    series: result.series ?? null,
+    tome: result.tome ?? null,
+    catalogKey: result.catalogKey ?? null,
   });
+}
+
+function subtitle(result: BookSearchResult): string {
+  const bits: string[] = [];
+  if (result.series) {
+    bits.push(
+      result.tome ? `${result.series} t${String(result.tome).padStart(2, "0")}` : result.series,
+    );
+  }
+  bits.push(result.authors.join(", ") || "Auteur inconnu");
+  if (result.year) bits.push(String(result.year));
+  return bits.join(" · ");
 }
 </script>
 
@@ -112,7 +135,7 @@ function addResult(result: BookSearchResult): void {
         <input
           v-model="title"
           type="text"
-          placeholder="ex. Le Nom de la Rose"
+          placeholder="ex. Elfes T11"
           class="w-full rounded-lg border border-white/10 bg-zinc-800/80 px-3 py-2 text-sm text-zinc-100 outline-none transition placeholder:text-zinc-600 hover:border-white/20 focus:border-emerald-400/50"
         />
       </label>
@@ -150,10 +173,10 @@ function addResult(result: BookSearchResult): void {
       <p v-if="searching" class="text-xs text-zinc-500">Recherche…</p>
       <template v-else-if="results.length > 0">
         <p class="mb-2 text-xs text-zinc-500">
-          Résultats Open Library — clique pour ajouter (auteurs, année et couverture auto) :
+          Clique pour ajouter (auteurs, année et couverture auto) :
         </p>
-        <ul class="flex flex-col gap-1.5">
-          <li v-for="(r, i) in results.slice(0, 8)" :key="`${r.olKey}-${i}`">
+        <ul class="flex max-h-80 flex-col gap-1.5 overflow-y-auto">
+          <li v-for="(r, i) in results.slice(0, 24)" :key="`${r.olKey ?? r.catalogKey ?? r.title}-${i}`">
             <button
               type="button"
               :disabled="addMutation.isPending.value"
@@ -174,17 +197,20 @@ function addResult(result: BookSearchResult): void {
               </span>
               <span class="min-w-0 flex-1">
                 <span class="block truncate text-sm text-zinc-200">{{ r.title }}</span>
-                <span class="block truncate text-xs text-zinc-500">
-                  {{ r.authors.join(", ") || "Auteur inconnu" }}
-                  <span v-if="r.year"> · {{ r.year }}</span>
-                </span>
+                <span class="block truncate text-xs text-zinc-500">{{ subtitle(r) }}</span>
+              </span>
+              <span
+                v-if="r.source === 'catalog'"
+                class="shrink-0 rounded-full bg-fuchsia-500/15 px-2 py-0.5 text-[10px] font-medium text-fuchsia-300 ring-1 ring-fuchsia-400/30"
+              >
+                Catalogue
               </span>
             </button>
           </li>
         </ul>
       </template>
       <p v-else-if="searched && title.trim().length >= 2" class="text-xs text-zinc-500">
-        Aucun résultat Open Library — tu peux quand même
+        Aucun résultat — tu peux quand même
         <button type="button" class="text-emerald-400 underline" @click="addManual">
           ajouter « {{ title.trim() }} » manuellement</button
         >.

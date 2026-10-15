@@ -16,6 +16,8 @@ type RawBook = {
   notes?: unknown;
   isbn?: unknown;
   year?: unknown;
+  series?: unknown;
+  tome?: unknown;
   source?: unknown;
   created_at?: unknown;
   updated_at?: unknown;
@@ -32,6 +34,12 @@ function asNumber(value: unknown): number | null {
 function asAuthors(value: unknown): string[] {
   if (!Array.isArray(value)) return [];
   return value.filter((a): a is string => typeof a === "string" && a.length > 0);
+}
+
+function asSource(value: unknown): BookSource {
+  if (value === "openlibrary") return "openlibrary";
+  if (value === "catalog") return "catalog";
+  return "manual";
 }
 
 async function atomicWrite(path: string, data: string): Promise<void> {
@@ -84,7 +92,6 @@ export class BookYamlStore implements BookStorePort {
       if (raw === null || typeof raw !== "object") continue;
       const kind: BookKind = raw.kind === "bd" ? "bd" : "livre";
       const status: BookStatus = isBookStatus(raw.status) ? raw.status : "a_lire";
-      const source: BookSource = raw.source === "openlibrary" ? "openlibrary" : "manual";
       records.set(key, {
         key,
         title: asString(raw.title) ?? key,
@@ -96,7 +103,9 @@ export class BookYamlStore implements BookStorePort {
         notes: asString(raw.notes),
         isbn: asString(raw.isbn),
         year: asNumber(raw.year),
-        source,
+        series: asString(raw.series),
+        tome: asNumber(raw.tome),
+        source: asSource(raw.source),
         created_at: asString(raw.created_at),
         updated_at: asString(raw.updated_at),
       });

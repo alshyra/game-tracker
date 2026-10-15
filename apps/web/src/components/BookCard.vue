@@ -13,6 +13,11 @@ const emit = defineEmits<(event: "status-change", key: string, status: BookStatu
 
 const cover = computed(() => props.book.cover_url ?? "");
 const failed = ref(false);
+const seriesLabel = computed(() => {
+  if (!props.book.series) return null;
+  const tome = props.book.tome ? ` t${String(props.book.tome).padStart(2, "0")}` : "";
+  return `${props.book.series}${tome}`;
+});
 
 function onChange(event: Event): void {
   emit("status-change", props.book.key, (event.target as HTMLSelectElement).value as BookStatus);
@@ -58,6 +63,9 @@ function onChange(event: Event): void {
     </div>
 
     <div class="flex flex-1 flex-col gap-2 p-3">
+      <p v-if="seriesLabel" class="text-[11px] font-medium uppercase tracking-wide text-fuchsia-300/80">
+        {{ seriesLabel }}
+      </p>
       <h3 class="line-clamp-2 text-sm font-medium leading-snug text-zinc-100" :title="book.title">
         {{ book.title }}
       </h3>
